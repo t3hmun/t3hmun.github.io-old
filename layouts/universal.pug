@@ -1,0 +1,25 @@
+doctype html
+html(lang="en")
+	head
+		title= page.title
+		meta(charset='utf-8')
+		// Informs smaller devices to wrap text inside the screen without scaling down the document.
+		meta(name='viewport', content='width=device-width, initial-scale=1')
+		// Info for robots who want to know about the page.
+		meta(name='description', content=page.description || site.description)
+		link(rel='stylesheet', href=`${site.baseUrl}/css/main.css`)
+		link(rel='canonical', href=`${site.baseUrl}/${page.url.replace('index.html', '')}`)
+		link(rel='alternative', type='application/rss+xml', title=site.title, href=`${site.baseUrl}/feed.xml`)
+		// A small non-essential for switching themes.
+		script(src=`${site.baseUrl}/js/theme.js`)
+	body
+		header
+			div(class='masthead')= page.title
+			nav
+				each val in site.nav
+					a(href=`${site.baseUrl}/${val.url}`)= val.text
+		main= content
+		footer
+			p CC-BY-SA-4.0
+
+
