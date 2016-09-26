@@ -1,0 +1,15 @@
+{
+  "name": "t3hmun-web-log",
+  "version": "0.0.0",
+  "description": "t3hmun's web-log",
+  "main": "pub.js",
+  "author": {
+    "name": "Manish Parekh",
+    "email": "web-log@t3hmun.com",
+    "web": "http://t3hmun.com"
+  },
+  "license": "CC-BY-SA-4.0",
+  "dependencies": {
+    "pug": "^2.0.0-beta6"
+  }
+}
