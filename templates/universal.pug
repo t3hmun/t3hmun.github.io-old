@@ -18,7 +18,7 @@ html(lang="en")
 			nav
 				each val in site.nav
 					a(href=`${site.baseUrl}/${val.url}`)= val.text
-		main= content
+		main!= content
 		footer
 			p CC-BY-SA-4.0
 
