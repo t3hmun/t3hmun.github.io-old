@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,7 @@ const less = require('less');
 const templateDir = './templates';
 const site = {
     title: 't3hmun',
-    description: "t3hmun's web log",
+    description: 't3hmun\'s web log',
     baseUrl: 'http://t3hmun.github.io',
     nav: [
         { url: 'index.html', text: 'Home' },
@@ -18,23 +18,23 @@ const site = {
 };
 
 let debug = false;
-let postDir = './posts';
+const postDir = './posts';
 let outputDir = './t3hmun.github.io';
 let compressCSS = true;
 
 if (process.argv.length > 2) {
-    console.log('Config:')
-    if (process.argv.find(e => e == 'debug')) {
+    console.log('Config:');
+    if (process.argv.find((e) => e == 'debug')) {
         debug = true;
-        debug && console.log(' Debug-mode on.')
+        debug && console.log(' Debug-mode on.');
     }
-    if (process.argv.find(e => e == 'test')) {
+    if (process.argv.find((e) => e == 'test')) {
         // Fully resolved path allows testing without server.
         site.baseUrl = path.resolve('./test');
         outputDir = path.resolve('./test');
         debug && console.log('test outputDir=' + outputDir);
         compressCSS = false;
-        console.log(' Test mode activated.')
+        console.log(' Test mode activated.');
     }
     console.log('');
 }
@@ -55,38 +55,38 @@ function renderCSS() {
         if (err) errorAndExit(err);
         let lessOptions = {
             filename: lessPath,
-            compress: !test
+            compress: !compressCSS
         };
 
-        less.render(data, lessOptions).then(lessOutput => {
+        less.render(data, lessOptions).then((lessOutput) => {
             debug && console.log(' imports: ' + lessOutput.imports);
             debug && console.log(' maps: ' + lessOutput.maps);
             return lessOutput.css;
-        }).then(css => {
+        }).then((css) => {
 
             let cssDir = path.join(outputDir, 'css');
             let cssPath = path.join(cssDir, 'main.css');
             ensureDirCreated(cssDir).then(() => {
-                fs.writeFile(cssPath, css, 'utf-8', err => {
+                fs.writeFile(cssPath, css, 'utf-8', (err) => {
                     if (err) errorAndExit(err);
-                    console.log('> CSS done.')
+                    console.log('> CSS done.');
                 });
             }).catch((err) => {
                 errorAndExit(err);
             });
-        }).catch(err => {
+        }).catch((err) => {
             errorAndExit(err);
         });
     });
 }
 
 function renderPosts() {
-    loadTemplates().then(templates => {
-        return getPosts().then(posts => {
+    loadTemplates().then((templates) => {
+        return getPosts().then((posts) => {
             posts.forEach((post) => {
                 let article = md.convert(post.data);
-                let postTemp = templates.find(e => e.name == 'post');
-                let univTemp = templates.find(e => e.name == 'universal');
+                let postTemp = templates.find((e) => e.name == 'post');
+                let univTemp = templates.find((e) => e.name == 'universal');
                 let postTemplatedData = postTemp.func({
                     site: site,
                     page: post,
@@ -109,15 +109,15 @@ function renderPosts() {
             console.log(postBaseUrl);
             return ensureDirCreated(postBaseUrl).then(() => {
                 let writes = [];
-                posts.forEach(post => {
+                posts.forEach((post) => {
                     writes.push(writePost(post));
                 });
                 return Promise.all(writes);
             });
-        }).catch(err => {
+        }).catch((err) => {
             errorAndExit(err);
         }).then(() => {
-            console.log('> Posts done.')
+            console.log('> Posts done.');
         });
     });
 }
@@ -134,7 +134,7 @@ function errorAndExit(err) {
 function writePost(post) {
     let writePath = path.join(outputDir, post.url);
     return new Promise((resolve, reject) => {
-        fs.writeFile(writePath, post.data, err => {
+        fs.writeFile(writePath, post.data, (err) => {
             if (err) {
                 reject(err);
                 return;

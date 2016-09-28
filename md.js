@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const markdownItOptions = {
     highlight: function (str, lang) {
@@ -6,7 +6,10 @@ const markdownItOptions = {
             try {
                 return highlightJs.highlight(lang, str).value;
             }
-            catch (__) {
+            catch (err) {
+                console.log('markdownIt highlight error');
+                console.log(err);
+                process.exit();
             }
         }
         return ''; // use external default escaping
@@ -18,4 +21,4 @@ const markdownIt = require('markdown-it')(markdownItOptions);
 
 module.exports.convert = function(data){
     return markdownIt.render(data);
-}
+};

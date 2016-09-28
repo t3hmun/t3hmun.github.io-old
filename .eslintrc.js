@@ -5,13 +5,14 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "rules": {
+        "no-console": "off",
         "indent": [
             "error",
             4
         ],
         "linebreak-style": [
             "error",
-            "windows"
+            "unix"
         ],
         "quotes": [
             "error",
@@ -20,6 +21,15 @@ module.exports = {
         "semi": [
             "error",
             "always"
-        ]
+        ],
+        "no-extra-parens":[
+            "error",
+            "all"
+        ],
+        "arrow-parens": ["error", "always"],
+        "valid-jsdoc": ["warn"],
+        "curly": ["warn", "multi-line"],
+        "strict": ["error"],
+        "callback-return": ["error"]
     }
 };
