@@ -5,6 +5,7 @@ const path = require('path');
 const md = require('./md');
 const pug = require('pug');
 const less = require('less');
+const effess = require('./effess');
 
 const templateDir = './templates';
 const site = {
@@ -12,8 +13,8 @@ const site = {
     description: 't3hmun\'s web log',
     baseUrl: 'http://t3hmun.github.io',
     nav: [
-        { url: 'index.html', text: 'Home' },
-        { url: 'info.html', text: 'Info' }
+        {url: 'index.html', text: 'Home'},
+        {url: 'info.html', text: 'Info'}
     ]
 };
 
@@ -124,7 +125,8 @@ function renderPosts() {
 
 /**
  * Quickly display error and crash. Fatal errors only.
- * @param  {Error} err The error.
+ * @param  {Error} err - The error.
+ * @returns {void} - Never (exits).
  */
 function errorAndExit(err) {
     console.log(err);
@@ -144,41 +146,29 @@ function writePost(post) {
     });
 }
 
-function loadTemplates() {
-    console.log('Loading templates...');
-    return new Promise((resolve, reject) => {
-        fs.readdir(templateDir, (err, fileNames) => {
-            if (err) errorAndExit(err);
-
-            let promises = [];
-            fileNames.forEach((fileName) => {
-                let filePath = path.join(templateDir, fileName);
-                let name = path.parse(fileName).name;
-                promises.push(new Promise((resolve, reject) => {
-                    fs.readFile(filePath, (err, data) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        let template = pug.compile(data, {
-                            filename: name
-                        });
-
-                        resolve({
-                            func: template,
-                            name: name
-                        });
-                    });
-                }));
+/**
+ * Loads all pug templates from specified dir.
+ * @param {string} dir - Path of the dir containing templates, not recursive.
+ * @returns {Promise} - List of {name, compiledPugFunction} in a promise.
+ */
+function loadTemplates(dir) {
+    debug && console.log('Loading templates ...');
+    let filter = (fileName)=>fileName.endsWith('.pug');
+    return effess.readFilesInDir(dir, filter).then((files)=> {
+        let templates = [];
+        try {
+            files.forEach((file)=> {
+                let options = {filename: file.name}; // Only needed to add detail to errors.
+                let template = pug.compile(file.data, options);
+                templates.push({
+                    name: path.parse(file.path).name, //removes ext
+                    func: template
+                });
             });
-
-            Promise.all(promises).then((templates) => {
-                console.log('...templates loaded.');
-                resolve(templates);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+        } catch (err) {
+            return Promise.reject(err);
+        }
+        return Promise.resolve(templates);
     });
 }
 

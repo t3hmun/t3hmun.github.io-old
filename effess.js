@@ -43,8 +43,9 @@ function ensureDirCreated(dirPath) {
 /**
  * Reads all the files in specified dir that match the filter. Not recursive.
  * @param {string} dirPath - Read files in this dir.
- * @param {function(string):boolean} filterFunc - Returns true on file-names that should be included. Default always true.
- * @param {string} encoding - Defaults to 'utf-8'.
+ * @param {function(string):boolean=} filterFunc - Returns true on file-names that should be included. Default
+ * always true.
+ * @param {string=} encoding - Defaults to 'utf-8'.
  * @returns {Promise} - An array of objects with string properties {name, path, dir, data}.
  */
 function readFilesInDir(dirPath, filterFunc, encoding) {
