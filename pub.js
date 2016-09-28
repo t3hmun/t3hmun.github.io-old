@@ -235,29 +235,4 @@ function ProcessPostFileName(fileName) {
     return post;
 }
 
-function ensureDirCreated(dirPath) {
-    return new Promise((resolve, reject) => {
-        fs.stat(dirPath, (err) => {
-            if (err) {
-                if (err.code == 'ENOENT') {
-                    let dirAbove = path.join(dirPath, '../');
-                    // Make sure the super-dir exists.
-                    ensureDirCreated(dirAbove).then(() => {
-                        fs.mkdir(dirPath, 666, (err) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve();
-                            }
-                        });
-                    });
 
-                } else {
-                    reject(err);
-                }
-            } else {
-                resolve();
-            }
-        });
-    });
-}
