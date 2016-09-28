@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const md = require('./md');
 const pug = require('pug');
+const less = require('less');
 
-const postDir = './posts';
 const templateDir = './templates';
 const site = {
     title: 't3hmun',
@@ -15,16 +15,65 @@ const site = {
     ]
 };
 
+let debug = false;
+let postDir = './posts';
 let outputDir = './t3hmun.github.io';
 
-if (process.argv.length > 2 && process.argv[2] == 'test') {
-    site.baseUrl = '.';
-    outputDir = './preview';
+if (process.argv.length > 2) {
+	console.log('Config:')
+    if (process.argv.find(e => e == 'debug')) {
+        debug = true;
+        debug && console.log(' Debug-mode on.')
+    }
+    if (process.argv.find(e => e == 'test')) {
+        site.baseUrl = path.resolve('./test');
+        outputDir = path.resolve('./test');
+        debug && console.log('test outputDir=' + outputDir);
+        console.log(' Output to ' + outputDir + ' activated.')
+    }
+	console.log('');
 }
 
 publish();
 
 function publish() {
+    renderPosts();
+    //renderCSS();
+}
+
+function renderCSS() {
+    let lessPath = './css/main.less';
+    let fullLessPath = path.resolve(lessPath);
+    console.log(fullLessPath);
+    fs.readFile(lessPath, 'utf-8', (err, data) => {
+        if (err) errorAndExit(err);
+        let lessOptions = {
+            // filename: lessPath,
+            paths: './css/'
+        };
+
+        less.render(data, lessOptions).then(lessOutput => {
+            console.log(lessOutput.css);
+            return lessOutput.css;
+        }).then(css => {
+
+            let cssDir = path.join(outputDir, 'css');
+            let cssPath = path.join(cssDir, 'main.css');
+            ensureDirCreated(cssDir).then(() => {
+                fs.writeFile(cssPath, css, 'utf-8', err => {
+                    if (err) errorAndExit(err);
+                    console.log('> CSS done.')
+                });
+            }).catch((err) => {
+                errorAndExit(err);
+            });
+        }).catch(err => {
+            errorAndExit(err);
+        });
+    });
+}
+
+function renderPosts() {
     loadTemplates().then(templates => {
         return getPosts().then(posts => {
             posts.forEach((post) => {
@@ -47,9 +96,11 @@ function publish() {
 
                 post.data = finalData;
             });
-            return posts
+            return posts;
         }).then((posts) => {
-            return ensureDirCreated(path.join(outputDir, postDir)).then(() => {
+            let postBaseUrl = path.join(outputDir, postDir);
+            console.log(postBaseUrl);
+            return ensureDirCreated(postBaseUrl).then(() => {
                 let writes = [];
                 posts.forEach(post => {
                     writes.push(writePost(post));
@@ -58,6 +109,8 @@ function publish() {
             });
         }).catch(err => {
             errorAndExit(err);
+        }).then(() => {
+            console.log('> Posts done.')
         });
     });
 }
@@ -85,6 +138,7 @@ function writePost(post) {
 }
 
 function loadTemplates() {
+    console.log('Loading templates...');
     return new Promise((resolve, reject) => {
         fs.readdir(templateDir, (err, fileNames) => {
             if (err) errorAndExit(err);
@@ -112,6 +166,7 @@ function loadTemplates() {
             });
 
             Promise.all(promises).then((templates) => {
+                console.log('...templates loaded.');
                 resolve(templates);
             }).catch((err) => {
                 reject(err);
@@ -121,8 +176,10 @@ function loadTemplates() {
 }
 
 function getPosts() {
+    console.log('Loading posts...');
     return new Promise((resolve, reject) => {
         fs.readdir(postDir, (err, fileNames) => {
+        	debug && console.log(fileNames);
             if (err) errorAndExit(err);
 
             let posts = [];
@@ -146,6 +203,7 @@ function getPosts() {
             });
 
             Promise.all(promises).then(() => {
+                console.log('...loaded posts.');
                 resolve(posts);
             }).catch((err) => {
                 reject(err);
