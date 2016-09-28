@@ -1,3 +1,5 @@
+"use strict";
+
 const fs = require('fs');
 const path = require('path');
 const md = require('./md');
@@ -18,42 +20,47 @@ const site = {
 let debug = false;
 let postDir = './posts';
 let outputDir = './t3hmun.github.io';
+let compressCSS = true;
 
 if (process.argv.length > 2) {
-	console.log('Config:')
+    console.log('Config:')
     if (process.argv.find(e => e == 'debug')) {
         debug = true;
         debug && console.log(' Debug-mode on.')
     }
     if (process.argv.find(e => e == 'test')) {
+        // Fully resolved path allows testing without server.
         site.baseUrl = path.resolve('./test');
         outputDir = path.resolve('./test');
         debug && console.log('test outputDir=' + outputDir);
-        console.log(' Output to ' + outputDir + ' activated.')
+        compressCSS = false;
+        console.log(' Test mode activated.')
     }
-	console.log('');
+    console.log('');
 }
 
 publish();
 
 function publish() {
+    // render functions are async, they may overlap.
     renderPosts();
-    //renderCSS();
+    renderCSS();
 }
 
 function renderCSS() {
     let lessPath = './css/main.less';
     let fullLessPath = path.resolve(lessPath);
-    console.log(fullLessPath);
+    debug && console.log(fullLessPath);
     fs.readFile(lessPath, 'utf-8', (err, data) => {
         if (err) errorAndExit(err);
         let lessOptions = {
-            // filename: lessPath,
-            paths: './css/'
+            filename: lessPath,
+            compress: !test
         };
 
         less.render(data, lessOptions).then(lessOutput => {
-            console.log(lessOutput.css);
+            debug && console.log(' imports: ' + lessOutput.imports);
+            debug && console.log(' maps: ' + lessOutput.maps);
             return lessOutput.css;
         }).then(css => {
 
@@ -179,7 +186,7 @@ function getPosts() {
     console.log('Loading posts...');
     return new Promise((resolve, reject) => {
         fs.readdir(postDir, (err, fileNames) => {
-        	debug && console.log(fileNames);
+            debug && console.log(fileNames);
             if (err) errorAndExit(err);
 
             let posts = [];
@@ -234,6 +241,7 @@ function ensureDirCreated(dirPath) {
             if (err) {
                 if (err.code == 'ENOENT') {
                     let dirAbove = path.join(dirPath, '../');
+                    // Make sure the super-dir exists.
                     ensureDirCreated(dirAbove).then(() => {
                         fs.mkdir(dirPath, 666, (err) => {
                             if (err) {
