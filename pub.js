@@ -149,7 +149,7 @@ function writePost(post) {
 /**
  * Loads all pug templates from specified dir.
  * @param {string} dir - Path of the dir containing templates, not recursive.
- * @returns {Promise} - List of {name, compiledPugFunction} in a promise.
+ * @returns {Promise.<{}[]>} - List of {name, compiledPugFunction} in a promise.
  */
 function loadTemplates(dir) {
     debug && console.log('Loading templates ...');
@@ -168,50 +168,38 @@ function loadTemplates(dir) {
         } catch (err) {
             return Promise.reject(err);
         }
+        debug && console.log('... templates loaded.');
         return Promise.resolve(templates);
     });
 }
 
-function getPosts() {
-    console.log('Loading posts...');
-    return new Promise((resolve, reject) => {
-        fs.readdir(postDir, (err, fileNames) => {
-            debug && console.log(fileNames);
-            if (err) errorAndExit(err);
-
-            let posts = [];
-            // Extract date and title from post filename and store paths.
-            fileNames.forEach((fileName) => {
-                posts.push(ProcessPostFileName(fileName));
-            });
-
-            let promises = [];
-            posts.forEach((post) => {
-                promises.push(new Promise((resolve, reject) => {
-                    fs.readFile(post.filePath, 'utf-8', (err, data) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        post.data = data;
-                        resolve();
-                    });
-                }));
-            });
-
-            Promise.all(promises).then(() => {
-                console.log('...loaded posts.');
-                resolve(posts);
-            }).catch((err) => {
-                reject(err);
-            });
+/**
+ * Loads posts from dir, reads info and converts md.
+ * @param dir - Dir to load posts from, not recursive.
+ * @return {Promise.<{}[]>} - List of {html, filePath, fileName, title, date, url, urlName}, the urls have spaces
+ * replaced.
+ */
+function loadPosts(dir) {
+    debug && console.log('Loading posts ...');
+    let filter = (fileName) => fileName.endsWith('.md');
+    return effess.readFilesInDir(dir, filter).then((files)=> {
+        let posts = [];
+        files.forEach((file)=> {
+            // TODO: This'll be the place to read in any front matter.
+            let html = md.convert(file.data);
+            let post = {
+                filePath: file.path,
+                fileName: file.name,
+                html: html,
+            };
+            setPostDateTitleInfo(post);
+            posts.push(post);
         });
+        return posts;
     });
 }
 
-function ProcessPostFileName(fileName) {
-    let post = {};
-    post.filePath = path.join(postDir, fileName);
+function setPostDateTitleInfo(post) {
     let info = path.parse(post.filePath);
     post.file = info;
     let div = info.name.indexOf('_');
