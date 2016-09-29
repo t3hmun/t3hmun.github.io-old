@@ -7,121 +7,157 @@ const pug = require('pug');
 const less = require('less');
 const effess = require('./effess');
 
-const templateDir = './templates';
-const site = {
-    title: 't3hmun',
-    description: 't3hmun\'s web log',
-    baseUrl: 'http://t3hmun.github.io',
-    nav: [
-        {url: 'index.html', text: 'Home'},
-        {url: 'info.html', text: 'Info'}
-    ]
-};
+publish(...configure());
 
-let debug = false;
-const postDir = './posts';
-let outputDir = './t3hmun.github.io';
-let compressCSS = true;
+/**
+ * Manually edit config here. Anything that was a global is now in here.
+ * @return {*[]}
+ */
+function configure() {
+    // Default config, modified by args after.
+    let debug = false;
+    let outputDir = './t3hmun.github.io';
+    let test = false;
 
-if (process.argv.length > 2) {
-    console.log('Config:');
-    if (process.argv.find((e) => e == 'debug')) {
-        debug = true;
-        debug && console.log(' Debug-mode on.');
+    const site = {
+        title: 't3hmun',
+        description: 't3hmun\'s web log',
+        baseUrl: 'http://t3hmun.github.io',
+        nav: [
+            {url: 'index.html', text: 'Home'},
+            {url: 'info.html', text: 'Info'}
+        ]
+    };
+
+    if (process.argv.length > 2) {
+        console.log('Config:');
+        if (process.argv.find((e) => e == 'debug')) {
+            debug = true;
+            debug && console.log(' Debug-mode on.');
+        }
+        if (process.argv.find((e) => e == 'test')) {
+            test = true;
+            // Fully resolved path allows testing without server.
+            site.baseUrl = path.resolve('./test');
+            outputDir = path.resolve('./test');
+            debug && console.log('test outputDir=' + outputDir);
+            console.log(' Test mode activated.');
+        }
+        console.log('');
     }
-    if (process.argv.find((e) => e == 'test')) {
-        // Fully resolved path allows testing without server.
-        site.baseUrl = path.resolve('./test');
-        outputDir = path.resolve('./test');
-        debug && console.log('test outputDir=' + outputDir);
-        compressCSS = false;
-        console.log(' Test mode activated.');
-    }
-    console.log('');
+
+    return [site, outputDir, debug, test];
 }
 
-publish();
+/**
+ * Fires a load of promises that result in a static site.
+ * @param {{}} site - site config, used by pug templates.
+ * @param {string} outputDir - Where the complete site will be written.
+ * @param debug - True to enable debug output.
+ * @param test - True to avoid minifying.
+ */
+function publish(site, outputDir, debug, test) {
+    // TODO: Move remaining string literals from here to configure().
+    let cssOutputDir = path.join(outputDir, 'css');
+    let postOutputDir = path.join(outputDir, 'posts');
 
-function publish() {
-    // render functions are async, they may overlap.
-    renderPosts();
-    renderCSS();
+    // Read files from disk and perform any processing that doesn't rely on other files.
+    let templatesLoaded = loadTemplates('./templates', debug);
+    let postsLoaded = loadPosts('./posts', debug);
+    let mainCssRendered = renderLessToCss('./css/main.less', !test, debug);
+
+    // Create output directories.
+    let postDirCreated = effess.ensureDirCreated(postOutputDir);
+    let cssDirCreated = effess.ensureDirCreated(cssOutputDir);
+
+    // Creation tasks that rely on previously loaded files.
+    let postTemplateApplied = Promise.all([postsLoaded, templatesLoaded]).then((tasksResults)=> {
+        return applyPostTemplates(...tasksResults, site, test, debug);
+    });
+
+    // Write files.
+    Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
+        let [posts] = taskResults;
+        return effess.writeMany(posts, (post)=> {
+            return {dir: postOutputDir, fileName: post.urlName, data: post.final}
+        });
+    }).catch((err)=> {
+        errorAndExit(err);
+    });
+
+    Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
+        let [css] = results;
+        return effess.write(cssOutputDir, 'main.less', css);
+    })
 }
 
-function renderCSS() {
-    let lessPath = './css/main.less';
-    let fullLessPath = path.resolve(lessPath);
-    debug && console.log(fullLessPath);
-    fs.readFile(lessPath, 'utf-8', (err, data) => {
-        if (err) errorAndExit(err);
-        let lessOptions = {
-            filename: lessPath,
-            compress: !compressCSS
-        };
-
-        less.render(data, lessOptions).then((lessOutput) => {
-            debug && console.log(' imports: ' + lessOutput.imports);
-            debug && console.log(' maps: ' + lessOutput.maps);
-            return lessOutput.css;
-        }).then((css) => {
-
-            let cssDir = path.join(outputDir, 'css');
-            let cssPath = path.join(cssDir, 'main.css');
-            ensureDirCreated(cssDir).then(() => {
-                fs.writeFile(cssPath, css, 'utf-8', (err) => {
-                    if (err) errorAndExit(err);
-                    console.log('> CSS done.');
+/**
+ * Apply templates to posts.
+ * @param {{}} posts - Posts with all their information.
+ * @param {{}} templates - Name and compiled pug function {name, func}.
+ * @param {{}} site - Lots of site info (see pug templates).
+ * @param {boolean} test - True enables test mode, avoid minifying anything.
+ * @param {boolean} debug - True enables debug output.
+ * @return {Promise<[]>} - The posts, each with a .final property representing the final file data.
+ */
+function applyPostTemplates(posts, templates, site, test, debug) {
+    debug && console.log('Applying post templates ...');
+    return new Promise((resolve, reject)=> {
+        let postTemplate = templates.find((e) => e.name == 'post');
+        let univTemplate = templates.find((e) => e.name == 'universal');
+        try {
+            posts.forEach((post)=> {
+                // The post template is just the contents of the main tag of the article page.
+                let postMain = postTemplate.func({
+                    site: site,
+                    page: post,
+                    content: post.html,
+                    pretty: test // neat output for test mode.
                 });
-            }).catch((err) => {
-                errorAndExit(err);
+                posts.final = univTemplate({
+                    site: site,
+                    page: post,
+                    content: postMain,
+                    pretty: test
+                });
             });
-        }).catch((err) => {
-            errorAndExit(err);
+        } catch (err) {
+            reject(err);
+            return;
+        }
+        resolve(posts);
+        debug && console.log('... applied post templates.');
+    });
+}
+
+/**
+ * Renders a LESS file to CSS, returning it as a string. Assumes all imports are in-lined so single file output.
+ * @param {string} filePath - Less file path.
+ * @param {boolean} compress - True to minify output.
+ * @param {boolean} debug - True for debug output mode.
+ * @return {Promise<string>} - Promise of the final CSS file contents.
+ */
+function renderLessToCss(filePath, compress, debug) {
+    debug && console.log('Rendering CSS ...');
+    return new Promise((resolve, reject)=> {
+        fs.readFile(filePath, 'utf-8', (err, data)=> {
+            if (err) {
+                reject(err);
+                return;
+            }
+            let lessOptions = {
+                fileName: filePath,
+                compress: compress
+            };
+            less.render(data, lessOptions).then((css)=> {
+                resolve(css);
+            }).catch((err)=> {
+                reject(err);
+            });
         });
     });
 }
 
-function renderPosts() {
-    loadTemplates().then((templates) => {
-        return getPosts().then((posts) => {
-            posts.forEach((post) => {
-                let article = md.convert(post.data);
-                let postTemp = templates.find((e) => e.name == 'post');
-                let univTemp = templates.find((e) => e.name == 'universal');
-                let postTemplatedData = postTemp.func({
-                    site: site,
-                    page: post,
-                    content: article,
-                    pretty: true
-                });
-
-                let finalData = univTemp.func({
-                    site: site,
-                    page: post,
-                    content: postTemplatedData,
-                    pretty: true
-                });
-
-                post.data = finalData;
-            });
-            return posts;
-        }).then((posts) => {
-            let postBaseUrl = path.join(outputDir, postDir);
-            console.log(postBaseUrl);
-            return ensureDirCreated(postBaseUrl).then(() => {
-                let writes = [];
-                posts.forEach((post) => {
-                    writes.push(writePost(post));
-                });
-                return Promise.all(writes);
-            });
-        }).catch((err) => {
-            errorAndExit(err);
-        }).then(() => {
-            console.log('> Posts done.');
-        });
-    });
-}
 
 /**
  * Quickly display error and crash. Fatal errors only.
@@ -133,25 +169,14 @@ function errorAndExit(err) {
     process.exit();
 }
 
-function writePost(post) {
-    let writePath = path.join(outputDir, post.url);
-    return new Promise((resolve, reject) => {
-        fs.writeFile(writePath, post.data, (err) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve();
-        });
-    });
-}
 
 /**
  * Loads all pug templates from specified dir.
  * @param {string} dir - Path of the dir containing templates, not recursive.
+ * @param {boolean} debug - Enable debug output (default false).
  * @returns {Promise.<{}[]>} - List of {name, compiledPugFunction} in a promise.
  */
-function loadTemplates(dir) {
+function loadTemplates(dir, debug) {
     debug && console.log('Loading templates ...');
     let filter = (fileName)=>fileName.endsWith('.pug');
     return effess.readFilesInDir(dir, filter).then((files)=> {
@@ -175,11 +200,12 @@ function loadTemplates(dir) {
 
 /**
  * Loads posts from dir, reads info and converts md.
- * @param dir - Dir to load posts from, not recursive.
+ * @param {string} dir - Dir to load posts from, not recursive.
+ * @param {boolean} debug - Enable debug output (default false).
  * @return {Promise.<{}[]>} - List of {html, filePath, fileName, title, date, url, urlName}, the urls have spaces
  * replaced.
  */
-function loadPosts(dir) {
+function loadPosts(dir, debug) {
     debug && console.log('Loading posts ...');
     let filter = (fileName) => fileName.endsWith('.md');
     return effess.readFilesInDir(dir, filter).then((files)=> {
@@ -207,9 +233,7 @@ function setPostDateTitleInfo(post) {
     post.date = new Date(dateStr);
     post.title = info.name.slice(div + 1);
     // Urls are not fun with spaces.
-    let urlName = info.name.replace(/\s/g, '-') + '.html';
-    // Url relative to baseUrl.
-    post.url = 'posts/' + urlName;
+    post.urlName = info.name.replace(/\s/g, '-') + '.html';
     return post;
 }
 

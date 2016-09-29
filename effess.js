@@ -5,6 +5,8 @@
 
 exports.ensureDirCreated = ensureDirCreated;
 exports.readFilesInDir = readFilesInDir;
+exports.write = write;
+exports.writeMany = writeMany;
 
 const fs = require('fs');
 const path = require('path');
@@ -89,6 +91,42 @@ function readFilesInDir(dirPath, filterFunc, encoding) {
             }).catch((err)=> {
                 reject(err);
             });
+        });
+    });
+}
+
+
+/**
+ * Writes data from each item.
+ * @param {[]} items
+ * @param {function({}):{}} func - Function that returns the {dir, fileName, data} for each item.
+ * @return {Promise} - void.
+ */
+function writeMany(items, func) {
+    let writes = [];
+    items.forEach((item)=> {
+        let [dir, fileName, data] = func(item);
+        writes.push(write(dir, fileName, data));
+    });
+    return Promise.all(writes);
+}
+
+/**
+ * Writes a single file, promise wrapper for fs.writeFile.
+ * @param {string} dir
+ * @param {string} fileName
+ * @param {string} data
+ * @return {Promise} - void.
+ */
+function write(dir, fileName, data) {
+    let writePath = path.join(dir, fileName);
+    return new Promise((resolve, reject) => {
+        fs.writeFile(writePath, data, (err) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve();
         });
     });
 }
