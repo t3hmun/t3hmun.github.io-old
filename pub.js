@@ -116,7 +116,7 @@ function applyPostTemplates(posts, templates, site, test, debug) {
                     content: post.html,
                     pretty: test // neat output for test mode.
                 });
-                posts.final = univTemplate.func({
+                post.final = univTemplate.func({
                     site: site,
                     page: post,
                     content: postMain,
