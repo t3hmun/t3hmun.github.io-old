@@ -103,6 +103,8 @@ function readFilesInDir(dirPath, filterFunc, encoding) {
  * @return {Promise} - void.
  */
 function writeMany(items, func) {
+    //console.log(items);
+    console.log(func);
     let writes = [];
     items.forEach((item)=> {
         let [dir, fileName, data] = func(item);

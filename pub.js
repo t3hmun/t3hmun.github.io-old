@@ -59,11 +59,11 @@ function configure() {
 function publish(site, outputDir, debug, test) {
     // TODO: Move remaining string literals from here to configure().
     let cssOutputDir = path.join(outputDir, 'css');
-    let postOutputDir = path.join(outputDir, 'posts');
+    let postOutputDir = path.join(outputDir, 'posts'); // Must be relative for url generation.
 
     // Read files from disk and perform any processing that doesn't rely on other files.
     let templatesLoaded = loadTemplates('./templates', debug);
-    let postsLoaded = loadPosts('./posts', debug);
+    let postsLoaded = loadPosts('./posts', postOutputDir, debug);
     let mainCssRendered = renderLessToCss('./css/main.less', !test, debug);
 
     // Create output directories.
@@ -79,7 +79,7 @@ function publish(site, outputDir, debug, test) {
     Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
         let [posts] = taskResults;
         return effess.writeMany(posts, (post)=> {
-            return {dir: postOutputDir, fileName: post.urlName, data: post.final}
+            return [postOutputDir, post.urlName, post.final];
         });
     }).catch((err)=> {
         errorAndExit(err);
@@ -88,13 +88,15 @@ function publish(site, outputDir, debug, test) {
     Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
         let [css] = results;
         return effess.write(cssOutputDir, 'main.less', css);
+    }).catch((err)=>{
+        errorAndExit(err);
     })
 }
 
 /**
  * Apply templates to posts.
- * @param {{}} posts - Posts with all their information.
- * @param {{}} templates - Name and compiled pug function {name, func}.
+ * @param {[]} posts - Posts with all their information.
+ * @param {[]} templates - Name and compiled pug function {name, func}.
  * @param {{}} site - Lots of site info (see pug templates).
  * @param {boolean} test - True enables test mode, avoid minifying anything.
  * @param {boolean} debug - True enables debug output.
@@ -114,7 +116,7 @@ function applyPostTemplates(posts, templates, site, test, debug) {
                     content: post.html,
                     pretty: test // neat output for test mode.
                 });
-                posts.final = univTemplate({
+                posts.final = univTemplate.func({
                     site: site,
                     page: post,
                     content: postMain,
@@ -146,7 +148,8 @@ function renderLessToCss(filePath, compress, debug) {
                 return;
             }
             let lessOptions = {
-                fileName: filePath,
+                fileName: path.resolve(filePath),
+                paths: path.parse(filePath).dir,
                 compress: compress
             };
             less.render(data, lessOptions).then((css)=> {
@@ -201,11 +204,12 @@ function loadTemplates(dir, debug) {
 /**
  * Loads posts from dir, reads info and converts md.
  * @param {string} dir - Dir to load posts from, not recursive.
+ * @param {string} outputDir - Needed for generating the url.
  * @param {boolean} debug - Enable debug output (default false).
  * @return {Promise.<{}[]>} - List of {html, filePath, fileName, title, date, url, urlName}, the urls have spaces
  * replaced.
  */
-function loadPosts(dir, debug) {
+function loadPosts(dir, outputDir, debug) {
     debug && console.log('Loading posts ...');
     let filter = (fileName) => fileName.endsWith('.md');
     return effess.readFilesInDir(dir, filter).then((files)=> {
@@ -219,12 +223,17 @@ function loadPosts(dir, debug) {
                 html: html,
             };
             setPostDateTitleInfo(post);
+            post.url = path.join(outputDir, post.urlName);
             posts.push(post);
         });
         return posts;
     });
 }
 
+/**
+ * Extracts title and date from filename, makes filename url friendly.
+ * @param post
+ */
 function setPostDateTitleInfo(post) {
     let info = path.parse(post.filePath);
     post.file = info;
@@ -234,7 +243,6 @@ function setPostDateTitleInfo(post) {
     post.title = info.name.slice(div + 1);
     // Urls are not fun with spaces.
     post.urlName = info.name.replace(/\s/g, '-') + '.html';
-    return post;
 }
 
 
