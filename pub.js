@@ -75,6 +75,18 @@ function publish(site, outputDir, debug, test) {
         return applyPostTemplates(...tasksResults, site, test, debug);
     });
 
+    // Render and write pages - they require posts for generating the indexes.
+    Promise.all([templatesLoaded, postsLoaded]).then((results)=> {
+        let [templates, posts] = results;
+        return renderPugPages('./pages', templates, site, posts, test, debug).then((pages)=> {
+            return effess.writeMany(pages, (page)=> {
+                return ['./', page.fileName, page.html];
+            });
+        });
+    }).catch((err)=> {
+        errorAndExit(err);
+    });
+
     // Write files.
     Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
         let [posts] = taskResults;
@@ -90,6 +102,39 @@ function publish(site, outputDir, debug, test) {
         return effess.write(cssOutputDir, 'main.css', lessOutput.css);
     }).catch((err)=> {
         errorAndExit(err);
+    });
+}
+
+/**
+ * Renders the non-post pages of the website from Pug.
+ * @param {string} pageDir - Folder containing pug pages.
+ * @param {{}} templates - Pre-compiled Pug templates {name, func}.
+ * @param {{}} site - Site vars.
+ * @param {{}} posts - All the posts, used for index generating.
+ * @param {boolean} test - True enables test mode, makes the HTML pretty.
+ * @param {boolean} debug - True enables debug output.
+ * @return {Promise.<{}>} - List of {html, fileName}.
+ */
+function renderPugPages(pageDir, templates, site, posts, test, debug) {
+    debug && console.log('Rendering pug pages ...');
+    let univTemplate = templates.find((e) => e.name == 'universal');
+    return effess.readFilesInDir(pageDir, (fileName)=>fileName.endsWith('.pug')).then((files)=> {
+        let options = {
+            site: site,
+            posts: posts,
+            pretty: test
+        };
+
+        let renders = [];
+        files.forEach((file)=> {
+            renders.push(new Promise((resolve)=> {
+                options.content = pug.render(file.data, options);
+                let completeHtml = univTemplate.func(options);
+                resolve(completeHtml);
+            }));
+        });
+        debug && console.log('... rendered pug pages.');
+        return Promise.all(renders);
     });
 }
 
