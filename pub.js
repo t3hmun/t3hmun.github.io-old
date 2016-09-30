@@ -11,7 +11,7 @@ publish(...configure());
 
 /**
  * Manually edit config here. Anything that was a global is now in here.
- * @return {*[]}
+ * @return {*[]} Config that can be spread for publish call params.
  */
 function configure() {
     // Default config, modified by args after.
@@ -53,8 +53,9 @@ function configure() {
  * Fires a load of promises that result in a static site.
  * @param {{}} site - site config, used by pug templates.
  * @param {string} outputDir - Where the complete site will be written.
- * @param debug - True to enable debug output.
- * @param test - True to avoid minifying.
+ * @param {boolean} debug - True to enable debug output.
+ * @param {boolean} test - True to avoid minifying.
+ * @returns {void}
  */
 function publish(site, outputDir, debug, test) {
     // TODO: Move remaining string literals from here to configure().
@@ -90,7 +91,7 @@ function publish(site, outputDir, debug, test) {
         return effess.write(cssOutputDir, 'main.less', css);
     }).catch((err)=>{
         errorAndExit(err);
-    })
+    });
 }
 
 /**
@@ -232,7 +233,8 @@ function loadPosts(dir, outputDir, debug) {
 
 /**
  * Extracts title and date from filename, makes filename url friendly.
- * @param post
+ * @param {{}} post - The post that will have properties added.
+ * @returns {void}
  */
 function setPostDateTitleInfo(post) {
     let info = path.parse(post.filePath);
