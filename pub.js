@@ -21,7 +21,7 @@ function configure() {
     const site = {
         title: 't3hmun',
         description: 't3hmun\'s web log',
-        baseUrl: 'http://t3hmun.github.io',
+        baseUrl: 'https://t3hmun.github.io',
         nav: [
             {url: 'index.html', text: 'Home'},
             {url: 'info.html', text: 'Info'}
