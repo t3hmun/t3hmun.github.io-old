@@ -138,10 +138,10 @@ function write(dir, fileName, data) {
  * @param {string} filePath - The path of the file to read.
  * @return {Promise}<string>
  */
-function read(filePath){
-    return new Promise((resolve, reject)=>{
-        fs.readFile(filePath, 'utf-8', (err, data)=>{
-            if(err){
+function read(filePath) {
+    return new Promise((resolve, reject)=> {
+        fs.readFile(filePath, 'utf-8', (err, data)=> {
+            if (err) {
                 reject(err);
                 return;
             }

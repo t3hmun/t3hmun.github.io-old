@@ -1,6 +1,5 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const md = require('./md');
 const pug = require('pug');
@@ -87,9 +86,9 @@ function publish(site, outputDir, debug, test) {
     });
 
     Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
-        let [css] = results;
-        return effess.write(cssOutputDir, 'main.less', css);
-    }).catch((err)=>{
+        let [lessOutput] = results;
+        return effess.write(cssOutputDir, 'main.css', lessOutput.css);
+    }).catch((err)=> {
         errorAndExit(err);
     });
 }
@@ -142,23 +141,14 @@ function applyPostTemplates(posts, templates, site, test, debug) {
  */
 function renderLessToCss(filePath, compress, debug) {
     debug && console.log('Rendering CSS ...');
-    return new Promise((resolve, reject)=> {
-        fs.readFile(filePath, 'utf-8', (err, data)=> {
-            if (err) {
-                reject(err);
-                return;
-            }
-            let lessOptions = {
-                fileName: path.resolve(filePath),
-                paths: path.parse(filePath).dir,
-                compress: compress
-            };
-            less.render(data, lessOptions).then((css)=> {
-                resolve(css);
-            }).catch((err)=> {
-                reject(err);
-            });
-        });
+    return effess.read(filePath).then((data)=> {
+        let lessOptions = {
+            filename: path.resolve(filePath),
+            paths: path.parse(filePath).dir,
+            compress: compress
+        };
+        // Is a promise that returns the CSS.
+        return less.render(data, lessOptions);
     });
 }
 
