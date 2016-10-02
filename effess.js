@@ -32,6 +32,8 @@ function ensureDirCreated(dirPath) {
                                 resolve();
                             }
                         });
+                    }).catch((err)=>{
+                        reject(err);
                     });
                 } else {
                     reject(err);

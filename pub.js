@@ -66,9 +66,12 @@ function publish(site, outputDir, debug, test) {
     let postsLoaded = loadPosts('./posts', postOutputDir, debug);
     let mainCssRendered = renderLessToCss('./css/main.less', !test, debug);
 
-    // Create output directories.
-    let postDirCreated = effess.ensureDirCreated(postOutputDir);
-    let cssDirCreated = effess.ensureDirCreated(cssOutputDir);
+    // Create output directories - don't try doing this in parallel, they both try to create the test dir.
+    let createDirs = effess.ensureDirCreated(postOutputDir).then(()=> {
+        return effess.ensureDirCreated(cssOutputDir)
+    }).catch((err)=> {
+        errorAndExit(err);
+    });
 
     // Creation tasks that rely on previously loaded files.
     let postTemplateApplied = Promise.all([postsLoaded, templatesLoaded]).then((tasksResults)=> {
@@ -76,18 +79,18 @@ function publish(site, outputDir, debug, test) {
     });
 
     // Render and write pages - they require posts for generating the indexes.
-    // postsLoaded.then((posts)=> {
-    //     return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
-    //         return effess.writeMany(pages, (page)=> {
-    //             return ['./', page.fileName, page.html];
-    //         });
-    //     });
-    // }).catch((err)=> {
-    //     errorAndExit(err);
-    // });
+    postsLoaded.then((posts)=> {
+        return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
+            return effess.writeMany(pages, (page)=> {
+                return ['./', page.fileName, page.html];
+            });
+        });
+    }).catch((err)=> {
+        errorAndExit(err);
+    });
 
     // Write files.
-    let writePosts = Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
+    let writePosts = Promise.all([postTemplateApplied, createDirs]).then((taskResults)=> {
         let [posts] = taskResults;
         return effess.writeMany(posts, (post)=> {
             return [postOutputDir, post.urlName, post.html];
@@ -96,14 +99,14 @@ function publish(site, outputDir, debug, test) {
         errorAndExit(err);
     });
 
-    let writeCSS = Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
+    let writeCSS = Promise.all([mainCssRendered, createDirs]).then((results)=> {
         let [lessOutput] = results;
         return effess.write(cssOutputDir, 'main.css', lessOutput.css);
     }).catch((err)=> {
         errorAndExit(err);
     });
 
-    Promise.all([writePosts, writeCSS]).then(()=>{
+    Promise.all([writePosts, writeCSS]).then(()=> {
         console.log('Publish complete.');
     });
 }
@@ -156,6 +159,7 @@ function applyPostTemplates(posts, templates, site, test, debug) {
             posts.forEach((post)=> {
                 // The post template is just the contents of the main tag of the article page.
                 post.html = postTemplate.func({
+                    filename: post.fileName,
                     site: site,
                     page: post,
                     content: post.html,
