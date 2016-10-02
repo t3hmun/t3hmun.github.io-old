@@ -58,8 +58,9 @@ function configure() {
  */
 function publish(site, outputDir, debug, test) {
     // TODO: Move remaining string literals from here to configure().
+    let postDir = 'posts';
     let cssOutputDir = path.join(outputDir, 'css');
-    let postOutputDir = path.join(outputDir, 'posts'); // Must be relative for url generation.
+    let postOutputDir = path.join(outputDir, postDir); // Must be relative for url generation.
 
     // Read files from disk and perform any processing that doesn't rely on other files.
     let templatesLoaded = loadTemplates('./templates', debug);
@@ -80,9 +81,10 @@ function publish(site, outputDir, debug, test) {
 
     // Render and write pages - they require posts for generating the indexes.
     postsLoaded.then((posts)=> {
+        posts.dir = postDir;
         return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
             return effess.writeMany(pages, (page)=> {
-                return ['./', page.fileName, page.html];
+                return [outputDir, page.fileName, page.html];
             });
         });
     }).catch((err)=> {
@@ -134,7 +136,11 @@ function renderPugPages(pageDir, site, posts, test, debug) {
             renders.push(new Promise((resolve)=> {
                 options.filename = file.path;
                 let html = pug.render(file.data, options);
-                resolve(html);
+                let page = {};
+                let info = path.parse(file.path);
+                page.fileName = info.name + '.html';
+                page.html = html;
+                resolve(page);
             }));
         });
         debug && console.log('... rendered pug pages.');
@@ -221,7 +227,7 @@ function loadTemplates(dir, debug) {
         let templates = [];
         try {
             files.forEach((file)=> {
-                let options = {filename: file.name}; // Only needed to add detail to errors.
+                let options = {filename: file.path}; // Only needed to add detail to errors.
                 let template = pug.compile(file.data, options);
                 templates.push({
                     name: path.parse(file.path).name, //removes ext
