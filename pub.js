@@ -76,48 +76,49 @@ function publish(site, outputDir, debug, test) {
     });
 
     // Render and write pages - they require posts for generating the indexes.
-    Promise.all([templatesLoaded, postsLoaded]).then((results)=> {
-        let [templates, posts] = results;
-        return renderPugPages('./pages', templates, site, posts, test, debug).then((pages)=> {
-            return effess.writeMany(pages, (page)=> {
-                return ['./', page.fileName, page.html];
-            });
-        });
-    }).catch((err)=> {
-        errorAndExit(err);
-    });
+    // postsLoaded.then((posts)=> {
+    //     return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
+    //         return effess.writeMany(pages, (page)=> {
+    //             return ['./', page.fileName, page.html];
+    //         });
+    //     });
+    // }).catch((err)=> {
+    //     errorAndExit(err);
+    // });
 
     // Write files.
-    Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
+    let writePosts = Promise.all([postTemplateApplied, postDirCreated]).then((taskResults)=> {
         let [posts] = taskResults;
         return effess.writeMany(posts, (post)=> {
-            return [postOutputDir, post.urlName, post.final];
+            return [postOutputDir, post.urlName, post.html];
         });
     }).catch((err)=> {
         errorAndExit(err);
     });
 
-    Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
+    let writeCSS = Promise.all([mainCssRendered, cssDirCreated]).then((results)=> {
         let [lessOutput] = results;
         return effess.write(cssOutputDir, 'main.css', lessOutput.css);
     }).catch((err)=> {
         errorAndExit(err);
+    });
+
+    Promise.all([writePosts, writeCSS]).then(()=>{
+        console.log('Publish complete.');
     });
 }
 
 /**
  * Renders the non-post pages of the website from Pug.
  * @param {string} pageDir - Folder containing pug pages.
- * @param {{}} templates - Pre-compiled Pug templates {name, func}.
  * @param {{}} site - Site vars.
- * @param {{}} posts - All the posts, used for index generating.
+ * @param {{}[]} posts - All the posts, used for index generating.
  * @param {boolean} test - True enables test mode, makes the HTML pretty.
  * @param {boolean} debug - True enables debug output.
- * @return {Promise.<{}>} - List of {html, fileName}.
+ * @return {Promise.<{}[]>} - List of {html, fileName}.
  */
-function renderPugPages(pageDir, templates, site, posts, test, debug) {
+function renderPugPages(pageDir, site, posts, test, debug) {
     debug && console.log('Rendering pug pages ...');
-    let univTemplate = templates.find((e) => e.name == 'universal');
     return effess.readFilesInDir(pageDir, (fileName)=>fileName.endsWith('.pug')).then((files)=> {
         let options = {
             site: site,
@@ -128,9 +129,9 @@ function renderPugPages(pageDir, templates, site, posts, test, debug) {
         let renders = [];
         files.forEach((file)=> {
             renders.push(new Promise((resolve)=> {
-                options.content = pug.render(file.data, options);
-                let completeHtml = univTemplate.func(options);
-                resolve(completeHtml);
+                options.filename = file.path;
+                let html = pug.render(file.data, options);
+                resolve(html);
             }));
         });
         debug && console.log('... rendered pug pages.');
@@ -145,27 +146,20 @@ function renderPugPages(pageDir, templates, site, posts, test, debug) {
  * @param {{}} site - Lots of site info (see pug templates).
  * @param {boolean} test - True enables test mode, avoid minifying anything.
  * @param {boolean} debug - True enables debug output.
- * @return {Promise<[]>} - The posts, each with a .final property representing the final file data.
+ * @return {Promise<[]>} - The posts, each with a .html property representing the final file data.
  */
 function applyPostTemplates(posts, templates, site, test, debug) {
     debug && console.log('Applying post templates ...');
     return new Promise((resolve, reject)=> {
         let postTemplate = templates.find((e) => e.name == 'post');
-        let univTemplate = templates.find((e) => e.name == 'universal');
         try {
             posts.forEach((post)=> {
                 // The post template is just the contents of the main tag of the article page.
-                let postMain = postTemplate.func({
+                post.html = postTemplate.func({
                     site: site,
                     page: post,
                     content: post.html,
                     pretty: test // neat output for test mode.
-                });
-                post.final = univTemplate.func({
-                    site: site,
-                    page: post,
-                    content: postMain,
-                    pretty: test
                 });
             });
         } catch (err) {
@@ -185,7 +179,7 @@ function applyPostTemplates(posts, templates, site, test, debug) {
  * @return {Promise<string>} - Promise of the final CSS file contents.
  */
 function renderLessToCss(filePath, compress, debug) {
-    debug && console.log('Rendering CSS ...');
+    debug && console.log('Rendering CSS from LESS...');
     return effess.read(filePath).then((data)=> {
         let lessOptions = {
             filename: path.resolve(filePath),
@@ -193,6 +187,7 @@ function renderLessToCss(filePath, compress, debug) {
             compress: compress
         };
         // Is a promise that returns the CSS.
+        debug && console.log('... rendered CSS from LESS.');
         return less.render(data, lessOptions);
     });
 }
@@ -262,6 +257,7 @@ function loadPosts(dir, outputDir, debug) {
             post.url = path.join(outputDir, post.urlName);
             posts.push(post);
         });
+        debug && console.log('... posts loaded.');
         return posts;
     });
 }

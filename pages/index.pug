@@ -1,12 +1,15 @@
-- {
--
-- }
-section
-    h1 Home
-    p This is t3hmun's web-log.
-    h2 Recent Posts
-    each post in posts
-        section
-            h3 post.title
-            p post.date
+extends ../templates/universal.pug
+block vars
+    - var page = {};
+    - page.title = 'Home';
+    - page.description = 't3hmun's web-log gome page';
+block content
+    section
+        h1 Home
+        p This is t3hmun's web-log.
+        h2 Recent Posts
+        each post in posts
+            section
+                h3 post.title
+                p post.date
 

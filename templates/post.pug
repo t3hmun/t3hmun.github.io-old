@@ -1,5 +1,7 @@
-article
-	header
-		h1= page.title
-		p !{page.date.toDateString()}
-	| !{content}
+extends ./templates/universal.pug
+block content
+    article
+        header
+            h1= page.title
+            p !{page.date.toDateString()}
+        | !{content}
