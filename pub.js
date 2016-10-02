@@ -25,7 +25,11 @@ function configure() {
         nav: [
             {url: 'index.html', text: 'Home'},
             {url: 'info.html', text: 'Info'}
-        ]
+        ],
+        postDir: 'posts',
+        pageDir: 'pages',
+        cssDir: 'css',
+        imgDir: 'img'
     };
 
     if (process.argv.length > 2) {
@@ -58,9 +62,8 @@ function configure() {
  */
 function publish(site, outputDir, debug, test) {
     // TODO: Move remaining string literals from here to configure().
-    let postDir = 'posts';
-    let cssOutputDir = path.join(outputDir, 'css');
-    let postOutputDir = path.join(outputDir, postDir); // Must be relative for url generation.
+    let cssOutputDir = path.join(outputDir, site.cssDir);
+    let postOutputDir = path.join(outputDir, site.postDir); // Must be relative for url generation.
 
     // Read files from disk and perform any processing that doesn't rely on other files.
     let templatesLoaded = loadTemplates('./templates', debug);
@@ -81,7 +84,7 @@ function publish(site, outputDir, debug, test) {
 
     // Render and write pages - they require posts for generating the indexes.
     postsLoaded.then((posts)=> {
-        posts.dir = postDir;
+        posts.dir = site.postDir;
         return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
             return effess.writeMany(pages, (page)=> {
                 return [outputDir, page.fileName, page.html];
