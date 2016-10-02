@@ -14,4 +14,7 @@ block content
                 h3
                     a(href=`${site.baseUrl}/${posts.dir}/${post.urlName}`) #{post.title}
                 p= post.date
+                if post.description
+                    p= post.description
+
 

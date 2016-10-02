@@ -259,13 +259,22 @@ function loadPosts(dir, outputDir, debug) {
     return effess.readFilesInDir(dir, filter).then((files)=> {
         let posts = [];
         files.forEach((file)=> {
-            // TODO: This'll be the place to read in any front matter.
-            let html = md.convert(file.data);
-            let post = {
-                filePath: file.path,
-                fileName: file.name,
-                html: html,
-            };
+            let mdContent;
+            let post;
+            if (file.data.startsWith('{')) {
+                let res = md.extractFrontmatter(file.data);
+                post = res.json;
+                mdContent = res.file;
+                debug && console.log(post.description);
+            } else {
+                post = {};
+                mdContent = file.data;
+            }
+
+            post.filePath = file.path;
+            post.fileName = file.name;
+            post.html = md.convert(mdContent);
+
             setPostDateTitleInfo(post);
             post.url = path.join(outputDir, post.urlName);
             posts.push(post);

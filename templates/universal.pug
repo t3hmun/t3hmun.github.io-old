@@ -15,7 +15,7 @@ html(lang="en")
         script(src=`${site.baseUrl}/js/theme.js`)
     body
         header
-            div(class='masthead')= page.title
+            div(class='masthead')= site.title
             nav
                 each val in site.nav
                     a(href=`${site.baseUrl}/${val.url}`)= val.text
