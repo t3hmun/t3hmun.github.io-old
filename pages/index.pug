@@ -9,7 +9,7 @@ block content
         h1 Home
         p This is t3hmun's web-log.
         h2 Recent Posts
-        each post in posts
+        each post in posts.reverse()
             section
                 h3
                     a(href=`${site.baseUrl}/${posts.dir}/${post.urlName}`) #{post.title}
