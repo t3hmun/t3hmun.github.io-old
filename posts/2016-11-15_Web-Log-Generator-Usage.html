@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><title>Web-Log Generator Usage</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Usage guide for the site generator that I wrote for this web-log."><link rel="stylesheet" href="https://t3hmun.github.io/css/main.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2016-11-15_Web-Log-Generator-Usage.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li></nav></header><main><article><header><h1>Web-Log Generator Usage</h1><p>Tue Nov 15 2016</p></header><h2>Structure</h2>
+<p><code>pub.js</code>:
+This is the main publishing code and entry point.</p>
+<p><code>md.js</code>:
+A wrapper for a markdown library.</p>
+<p><code>effess.js</code>:
+A promise based wrapper for common file IO functions used by <code>pub.js</code>.</p>
+<p><code>pages/</code>:
+Contains unique pages of the website written using Pug.</p>
+<p><code>templates/</code>:
+Pug templates used by pages and posts
+The <code>universal.pug</code> template should be used by all pages and posts.</p>
+<p><code>css/</code>:
+CSS and LESS files, compiled by the <code>main.less</code> file. The intent is to output a single <code>main.css</code> file.</p>
+<p><code>posts/</code>:
+Markdown files that represent posts to the web-log.</p>
+<h2>Configuration</h2>
+<p>The basic site configuration should be tweaked for your site.
+It can be found in the <code>site</code> constant inside the <code>configure()</code> function at the beginning of <code>pub .js</code>.</p>
+<p><code>site.baseUrl</code> is used to generate canonical urls for all pages.</p>
+<p><code>site.nav</code> is a list of pages that should be part of the main nav that appears on all pages.</p>
+<h2>Site Output Folder</h2>
+<p>The site output is folder is configured via the <code>outputDir</code> variable in <code>configure()</code> in <code>pub.js</code>.</p>
+<p>For my site that folder is configured as a git submodule that points to the master branch of my Github pages repo.
+The <code>master</code> branch only contains the site that is shown via Github pages,
+the <code>source</code> branch contains all this site generation code and unprocessed site data.</p>
+<blockquote>
+<p>Configuring the output folder as a Git submodule is a convenience hack.
+It allows allows everything to be kept in a single repository while separating the output and development.
+If you don't like this hack put the code and site data in a different repo.</p>
+</blockquote>
+<h2>Generating the Site</h2>
+<p>The <code>test</code> and <code>debug</code> flags are optional, may be a good idea on first try.</p>
+<p>Test mode outputs the site to <code>test/</code> with resolved file urls so that links work when the files are opened without a
+server.
+This is the quickest way of testing the output.</p>
+<p>The debug flag spams some extra information, may be a bit of a mess.</p>
+<pre><code class="language-bash">$ node pub <span class="hljs-built_in">test</span> debug
+</code></pre>
+<p>Run <code>pub.js</code> without the test flag to get proper site output with correct relative urls.
+This output can then be published to a Github pages repo master branch or any other server.</p>
+<h2>Errors</h2>
+<p>The code is meant to be fail-fast, will abort on any error, via the <code>errorAndExit()</code> function.
+It prints the error to the console and then kills the process.
+Explicitly killing the process is necessary because the code is very asynchronous.
+As a result there may be partial output after an error.</p>
+</article></main><footer><p>CC-BY-SA-4.0</p></footer></body></html>
