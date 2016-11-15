@@ -1,22 +1,25 @@
 # t3hmun's web-log
 
-Writing code to generate the site myself using Node.js 6.
+This is a static site generator, written in Node.js 6 as a learning exercise.
 
-Not using existing static site framework because learning JS.
+It powers my site.
+
+Some things are done the long way, without using existing libs because it is good for learning.
+
 
 ## Status
 
-Site isn't ready for people.
+Successfully generates a site with:
+
+* Generates posts from Markdown files.
+* Templates post layout and other pages using Pug.
+* Automatic listing of posts on home page
+* Syntax highlighting of code blocks in md.
+
 
 ### Todo
 
 * CSS style
-* Index
+* Separate full index page
 * Tags
-* Content
-
-### Complete
-* Markdown and Pug template post generation
-* Less CSS compilation (syntax and normalize only).
-
 
