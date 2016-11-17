@@ -24,7 +24,8 @@ function configure() {
         baseUrl: 'https://t3hmun.github.io',
         nav: [
             {url: 'index.html', text: 'Home'},
-            {url: 'info.html', text: 'Info'}
+            {url: 'info.html', text: 'Info'},
+            {url: 'archive.html', text: 'Archive'}
         ],
         postDir: 'posts',
         pageDir: 'pages',

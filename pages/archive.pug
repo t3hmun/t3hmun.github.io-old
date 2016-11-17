@@ -1,13 +1,12 @@
 extends ../templates/universal.pug
 block vars
     - var page = {};
-    - page.title = 'Home';
-    - page.description = 't3hmun\'s web-log home page';
-    - page.url = 'index.html';
+    - page.title = 'Archive';
+    - page.description = 't3hmun\'s web-log archive page.';
+    - page.url = 'archive.html';
 block content
     section
-        h1 Home
-        p This is t3hmun's web-log.
+        h1 Archive
         h2 Recent Posts
         each post in posts.reverse()
             section
@@ -16,5 +15,4 @@ block content
                 div(class='index-date-footer')= post.date
                 if post.description
                     p(class='index-description')= post.description
-
 
