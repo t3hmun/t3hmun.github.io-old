@@ -11,10 +11,10 @@ block content
         h2 Recent Posts
         each post in posts.reverse()
             section
-                h3
+                h3(class='index-header')
                     a(href=`${site.baseUrl}/${posts.dir}/${post.urlName}`) #{post.title}
-                p= post.date
+                div(class='header-date-footer')= post.date
                 if post.description
-                    p= post.description
+                    p(class='index-description')= post.description
 
 

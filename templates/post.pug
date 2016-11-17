@@ -3,5 +3,5 @@ block content
     article
         header
             h1= page.title
-            p !{page.date.toDateString()}
+            div(class='header-date-footer') !{page.date.toDateString()}
         | !{content}

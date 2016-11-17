@@ -117,6 +117,8 @@ pre {
 h1, h2, h3, h4, h5, h6 {
   font-weight: @header-weight;
   line-height: @header-line-height;
+  padding: 0 @gutter;
+  margin: @line-height 0;
 }
 
 h1 {
@@ -126,6 +128,7 @@ h1 {
   border: @header-border @highlight-colour;
   margin-right: @h1-shadow;
   box-shadow: @h1-shadow @h1-shadow 0 @highlight-colour;
+  margin-bottom: @line-height - @h1-shadow;
 }
 
 h2 {
@@ -133,6 +136,7 @@ h2 {
   color: @h2-colour;
   margin-right: @h1-shadow;
   box-shadow: @h1-shadow @h1-shadow 0 @subtle-back-colour;
+  margin-bottom: @line-height - @h1-shadow;
 }
 
 h3 {
@@ -207,4 +211,18 @@ h6 {
   max-width: @wide-text-width;
   margin: @gutter auto;
   padding: 0 @gutter;
+}
+
+.header-date-footer {
+  line-height: @base-size;
+  max-width: @content-width;
+  margin: 0 @gutter;
+}
+
+.index-header {
+  margin-bottom: 0;
+}
+
+.index-description {
+  max-width: @wide-text-width;
 }
