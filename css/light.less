@@ -1,0 +1,32 @@
+// This is the main less file for the light theme.
+// The dark theme should be identical except for the colours set in this file.
+
+@import "size";
+
+// These font are shared between the light and dark theme but its not worth a new file for 2 lines.
+@base-font-family: "Source Sans Pro", sans-serif;
+@syntax-font-family: "Source Code Pro", monospace;
+
+// Colours
+
+@text-colour: #272822;
+@background-colour: #eee;
+@highlight-colour: darken(#fd971f, 20%);
+@link-colour: darken(#a6e22e, 20%);
+
+@link-hover-colour: @highlight-colour;
+
+@subtle-back-colour: darken(mix(@highlight-colour, @background-colour, 10%), 10%);
+@subtle-fore-colour: lighten(mix(@highlight-colour, @text-colour, 50%), 10%);
+
+@h2-colour: @highlight-colour;
+@h3-colour: mix(@text-colour, @highlight-colour, 50%);
+@h4-colour: mix(@text-colour, @highlight-colour, 50%);
+@h5-colour: mix(@text-colour, @highlight-colour, 50%);
+@h6-colour: mix(@text-colour, @highlight-colour, 100%);
+
+
+@import (less) "normalize.css";
+@import (less) "darcula.css";
+
+@import "style";

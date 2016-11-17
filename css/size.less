@@ -1,0 +1,41 @@
+// The sizes of everything should be defined in this file.
+// The only size used manually should be 0px.
+
+// The default size of text and the size that all other sizes are calculated from.
+@base-size: 20px;
+
+// Space from the edge of the screen. A small gutter improves readability.
+@gutter: @base-size / 4;
+
+// The max width for pure text content.
+// I want roughly 60 characters per line for heavy reading.
+// Normal fonts have a height width ratio of around 2.2:1
+// The height is multiplied to achieve a rough CPL.
+@reading-width: @base-size * 27;
+
+// This is the max with for any content, including large images, code and titles.
+// These kinds of content like to exploit as much space as possible.
+// However using more than double the reading width looks clumsy and confusing.
+@content-width: @reading-width * 2;
+
+// Special blocks of text such as lists need more space to be properly readable.
+@wide-text-with: @reading-width * 1.5;
+
+@line-height: ceil(@base-size * 1.5);
+
+// Border size for headers.
+@header-border: ceil(@base-size / 25.0);
+
+@h1-shadow: @header-border * 3;
+
+@header-line-height: @line-height * 2.0;
+
+// The masthead is not a header, its just a bit of text at the top of the page.
+@masthead-size: @base-size * 3;
+@h1-size: @base-size * 2.5;
+@h2-size: @base-size * 2.2;
+@h3-size: @base-size * 1.9;
+@h4-size: @base-size * 1.6;
+@h5-size: @base-size * 1.3;
+@h6-size: @base-size * 1.1;
+

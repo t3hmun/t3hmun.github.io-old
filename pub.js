@@ -68,7 +68,8 @@ function publish(site, outputDir, debug, test) {
     // Read files from disk and perform any processing that doesn't rely on other files.
     let templatesLoaded = loadTemplates('./templates', debug);
     let postsLoaded = loadPosts('./posts', postOutputDir, debug);
-    let mainCssRendered = renderLessToCss('./css/main.less', !test, debug);
+    let lightCssRendered = renderLessToCss('./css/light.less', !test, debug);
+    let darkCssRendered = renderLessToCss('./css/dark.less', !test, debug);
 
     // Create output directories - don't try doing this in parallel, they both try to create the test dir.
     let createDirs = effess.ensureDirCreated(postOutputDir).then(()=> {
@@ -104,9 +105,11 @@ function publish(site, outputDir, debug, test) {
         errorAndExit(err);
     });
 
-    let writeCSS = Promise.all([mainCssRendered, createDirs]).then((results)=> {
-        let [lessOutput] = results;
-        return effess.write(cssOutputDir, 'main.css', lessOutput.css);
+    let writeCSS = Promise.all([lightCssRendered, darkCssRendered, createDirs]).then((results)=> {
+        let [light, dark] = results;
+        let lightPromise = effess.write(cssOutputDir, 'light.css', light.css);
+        let darkPromise = effess.write(cssOutputDir, 'dark.css', dark.css);
+        return Promise.all([lightPromise, darkPromise]);
     }).catch((err)=> {
         errorAndExit(err);
     });
