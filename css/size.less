@@ -11,7 +11,7 @@
 // I want roughly 60 characters per line for heavy reading.
 // Normal fonts have a height width ratio of around 2.2:1
 // The height is multiplied to achieve a rough CPL.
-@reading-width: @base-size * 27;
+@reading-width: @base-size * 30;
 
 // This is the max with for any content, including large images, code and titles.
 // These kinds of content like to exploit as much space as possible.
@@ -19,7 +19,7 @@
 @content-width: @reading-width * 2;
 
 // Special blocks of text such as lists need more space to be properly readable.
-@wide-text-with: @reading-width * 1.5;
+@wide-text-width: @reading-width * 1.5;
 
 @line-height: ceil(@base-size * 1.5);
 
@@ -28,7 +28,8 @@
 
 @h1-shadow: @header-border * 3;
 
-@header-line-height: @line-height * 2.0;
+@header-line-height: @line-height * 2;
+@masthead-line-height: @line-height * 3;
 
 // The masthead is not a header, its just a bit of text at the top of the page.
 @masthead-size: @base-size * 3;
@@ -39,3 +40,6 @@
 @h5-size: @base-size * 1.3;
 @h6-size: @base-size * 1.1;
 
+@blockquote-side-line: ceil(@base-size / 2);
+@syntax-border-thickness: 1px;
+@bullet-padding: @base-size;

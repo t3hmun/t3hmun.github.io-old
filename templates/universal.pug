@@ -16,13 +16,14 @@ html(lang="en")
     body
         header
             div(class='masthead')= site.title
-            nav
-                each val in site.nav
-                    li
-                        a(href=`${site.baseUrl}/${val.url}`)= val.text
+            nav(class='main-nav')
+                ul
+                    each val in site.nav
+                        li
+                            a(href=`${site.baseUrl}/${val.url}`)= val.text
         main
             block content
-        footer
+        footer(class='footer')
             p CC-BY-SA-4.0
 
 

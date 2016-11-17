@@ -2,46 +2,209 @@
 
 body {
   font-size: @base-size;
+  font-family: @base-font-family;
+  color: @text-colour;
+  background: @background-colour;
+  font-weight: @text-weight;
 
+  // Auto margin should centre the body.
   margin: 0 auto;
 
+  // Stops content stretching excessively on wide windows.
   max-width: @content-width;
 
+  // Universal line height creates a spacing rhythm, feels nicer.
   line-height: @line-height;
 }
 
 p {
   max-width: @reading-width;
+  display: block;
+  margin: @line-height auto;
+  padding: 0 @gutter;
+
 }
 
-.masthead {
-  font-size: @masthead-size;
+code {
+  font-family: @syntax-font-family;
+  color: @subtle-fore-colour;
+  display: inline-block;
 }
 
+a {
+  text-decoration: none;
+  color: @link-colour;
+}
 
-h1 {
-  border: @header-border @highlight-colour;
+a:hover {
+  color: @link-hover-colour;
+}
+
+img {
+  // Causes images to shrink down to small screens.
+  width: 100%;
+}
+
+ol, ul, blockquote, dl {
+  max-width: @wide-text-width;
+  display: block;
+  margin: @gutter auto;
+  padding: 0 @gutter;
+  background: @subtle-back-colour;
+
+  // Reset p to fit the element instead of reading-width.
+  p {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+blockquote {
+  // The fat line on the left that sets out a blockquote.
+  border-left: solid @blockquote-side-line @subtle-fore-colour;
+}
+
+ul {
+  list-style: disc inside none;
+}
+
+ol {
+  list-style: decimal inside;
+}
+
+ul, ol {
+  // Extra padding for bullet space.
+  padding: 0 @gutter 0 @bullet-padding;
+
+  // Make adjustments for the $gutter that other elements have and $bullet-padded that lists have.
+  max-width: @wide-text-width - @bullet-padding + @gutter;
+
+  ul, ol {
+    padding: 0 @bullet-padding;
+    margin: 0;
+  }
+
+  ul {
+    list-style: circle inside none;
+
+    ul {
+      list-style: square inside none;
+    }
+  }
+
+  ol {
+    list-style: lower-latin inside;
+
+    ol {
+      list-style: lower-roman inside;
+    }
+  }
+}
+
+// Most of the styling for pre is done by the syntax stylesheet.
+pre {
+  // Block display with auto margins centres the block in the screen.
+  // Vertical margins to space elements.
+  // Add padding to maintain a gutter.
+  display: block;
+  margin: @gutter auto;
+  padding: 0 @gutter;
+  font-family: @syntax-font-family;
+  border: solid @syntax-border-thickness @subtle-back-colour;
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-weight: @header-weight;
   line-height: @header-line-height;
 }
 
 h1 {
   font-size: @h1-size;
+  font-weight: @h1-weight;
+  color: @h1-colour;
+  border: @header-border @highlight-colour;
+  margin-right: @h1-shadow;
+  box-shadow: @h1-shadow @h1-shadow 0 @highlight-colour;
 }
+
 h2 {
   font-size: @h2-size;
+  color: @h2-colour;
+  margin-right: @h1-shadow;
+  box-shadow: @h1-shadow @h1-shadow 0 @subtle-back-colour;
 }
+
 h3 {
   font-size: @h3-size;
+  color: @h3-colour;
 }
+
 h4 {
   font-size: @h4-size;
+  color: @h4-colour;
 }
+
 h5 {
   font-size: @h5-size;
+  color: @h5-colour;
 }
+
 h6 {
   font-size: @h6-size;
+  color: @h6-colour;
+}
+
+.masthead {
+  // This class is used for the site masthead.
+  font-size: @masthead-size;
+  font-weight: @h1-weight;
+  line-height: @masthead-line-height;
+  .centre-block;
+}
+
+.main-nav {
+  ul {
+    list-style-type: none;
+    width: auto;
+    max-width: none;
+    padding: 0 0 0 0;
+    li {
+      display: inline;
+      margin: @gutter;
+    }
+
+  }
+  .centre-block;
+  width: auto;
+  max-width: none;
+}
+
+.footer {
+  .centre-block;
+}
+
+.hatch-box {
+  background: repeating-linear-gradient(120deg, @background-colour, @background-colour 3px, @subtle-back-colour 2px, @subtle-back-colour 4px);
+}
+
+.centre-block {
+  max-width: @content-width;
+  text-align: center;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.content-width {
+  // This class is used for very big images.
+  max-width: @content-width;
+  margin: @gutter auto;
+  padding: 0 @gutter;
+}
+
+.other-text-width {
+  // This class is used for big images.
+  max-width: @wide-text-width;
+  margin: @gutter auto;
+  padding: 0 @gutter;
 }

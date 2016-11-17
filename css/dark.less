@@ -6,6 +6,9 @@
 // These font are shared between the light and dark theme but its not worth a new file for 2 lines.
 @base-font-family: "Source Sans Pro", sans-serif;
 @syntax-font-family: "Source Code Pro", monospace;
+@text-weight: 300;
+@header-weight: 300;
+@h1-weight: 500;
 
 // Colours
 
@@ -19,10 +22,11 @@
 @subtle-back-colour: mix(@highlight-colour, @background-colour, 10%);
 @subtle-fore-colour: mix(@highlight-colour, @text-colour, 50%);
 
-@h2-colour: @highlight-colour;
+@h1-colour: @highlight-colour;
+@h2-colour: mix(@text-colour, @highlight-colour, 50%);
 @h3-colour: mix(@text-colour, @highlight-colour, 50%);
 @h4-colour: mix(@text-colour, @highlight-colour, 50%);
-@h5-colour: mix(@text-colour, @highlight-colour, 50%);
+@h5-colour: mix(@text-colour, @highlight-colour, 75%);
 @h6-colour: mix(@text-colour, @highlight-colour, 100%);
 
 
