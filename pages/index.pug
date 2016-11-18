@@ -12,7 +12,7 @@ block content
             It is not yet complete.
             Site is generated from markdown and pug files using a Node.Js script that I wrote.
         h2 Recent Posts
-        each post in posts.reverse()
+        each post in posts.slice().reverse()
             section
                 h3(class='index-header')
                     a(href=`${site.baseUrl}/${posts.dir}/${post.urlName}`) #{post.title}

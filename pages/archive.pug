@@ -8,7 +8,7 @@ block content
     section
         h1 Archive
         h2 Recent Posts
-        each post in posts.reverse()
+        each post in posts.slice().reverse()
             section
                 h3(class='index-header')
                     a(href=`${site.baseUrl}/${posts.dir}/${post.urlName}`) #{post.title}
