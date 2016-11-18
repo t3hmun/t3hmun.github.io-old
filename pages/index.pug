@@ -8,9 +8,12 @@ block content
     section
         h1 Home
         p.
-            Welcome to my website.
-            It is not yet complete.
-            Site is generated from markdown and pug files using a Node.Js script that I wrote.
+            Welcome to my web-log.
+            It is under construction.
+            The content here will be a collection of things I am doing or learning and want to remember.
+        p.
+            This site site is generated from Pug templates and Markdown files for the posts.
+            I wrote the site generation scripts myself in order to learn a bit of Javascript with Node.Js.
         h2 Recent Posts
         each post in posts.slice().reverse()
             section

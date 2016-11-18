@@ -1,28 +1,48 @@
-{ "description": "Usage guide for the site generator that I wrote for this web-log." }
+{ "description": "A quick run-down of the structure and usage of the code I wrote for generating this web-log." }
+
+## Introduction
+
+I wrote a static site generator script to create this website. 
+I decided to write the whole thing from scratch instead of using existing projects in order to learn a bit of JS.
+Also writing things myself allowed me to customise things my own way:
+
+* No annoying dependencies
+    * Installing more than one of Ruby, Python and NodeJs is horrible.
+    * I chose Node.Js so that I could practice some JavaScript
+* Site shouldn't have any extraneous hard to understand JS.
+    * This means no jQuery or any other lib bigger than my site's content.
+    * Also no convoluted responsive themes.
+* Should be comfortable to read on both small phones and large monitors.
+    * No unpredictable scripted resizing that some responsive themes are guilty of.
+    * Limited reading width that reflows to smaller screens/windows (aka word wrap).
+* The HTML should validate and be impaired-reader friendly.
+* Full syntax highlighting for code
+    * I'm a software developer, I'll be writing about code.
+
+The frameworks/libs I've used:
+
+* [Pug](https://pugjs.org/) is used to template all pages and the content of unique pages.
+* [Less](lesscss.org) is used to create the CSS.
+* Markdown is used for authoring posts to the web-log 
+  (using [markdown-it](https://github.com/markdown-it/markdown-it) 
+  with [highlight.Js](highlightjs.org)).
+* Node.Js 6 is used to tie everything together and generate the site in one command.
 
 ## Structure
 
-`pub.js`:
-This is the main publishing code and entry point.
-
-`md.js`:
-A wrapper for a markdown library.
-
-`effess.js`:
-A promise based wrapper for common file IO functions used by `pub.js`.
- 
-`pages/`:
-Contains unique pages of the website written using Pug.
-
-`templates/`:
-Pug templates used by pages and posts
-The `universal.pug` template should be used by all pages and posts.
-
-`css/`:
-CSS and LESS files, compiled by the `main.less` file. The intent is to output a single `main.css` file.
-
-`posts/`:
-Markdown files that represent posts to the web-log.
+* Code
+    * `pub.js`: This is the main publishing code and entry point.
+    * `md.js`: A wrapper for a markdown library.
+    * `effess.js`: A promise based wrapper for common file IO functions used by `pub.js`.
+* Style
+    * `templates/`: Pug templates used by pages and posts
+        * The `universal.pug` template should be used by every page of the site.
+        * The `post.pug` template wraps the html generated from the Markdown posts.
+    * `css/`: CSS and LESS files, compiled by the `main.less` file. 
+    The intent is to output a single `main.css` file.
+* Content
+    * `pages/`: Contains unique pages of the website written using Pug.
+    * `posts/`: Markdown files that represent posts to the web-log.
 
 ## Configuration
 
@@ -46,6 +66,35 @@ the `source` branch contains all this site generation code and unprocessed site 
 It allows allows everything to be kept in a single repository while separating the output and development.
 If you don't like this hack put the code and site data in a different repo.
 
+
+## Writing Posts
+
+To avoid duplicating information the post date and title is read directly from the filename.
+As a result the file title must follow the standard pattern.
+
+```
+year-month-day_The Main Title Of the Post.md
+For example:
+2016-11-15_Web-Log Generator Usage.md
+```
+
+Any spaces in the title are converted to dashes for the url of the post, 
+however dashes in the title are preserved for the title in the document.
+
+Front-matter in the document is optional, the essential information is all in the filename.
+In order to add a description for the metadata and index entry for the post insert a Json block to the start 
+of the document. It must begin on the first line of the document.
+
+```json
+{ 
+    "description": "A quick run-down of the structure and usage of the code I wrote for generating this web-log." 
+}
+```
+
+Json was chosen because it is easy to use and doesn't usually confuse markdown parsers.
+
+Do not repeat the title in the document, it will be inserted automatically as a `h1` at the beginning.
+Also do no use `h1` (a single `#` heading) in the document because this should only be used for the main title.
 
 ## Generating the Site
 
