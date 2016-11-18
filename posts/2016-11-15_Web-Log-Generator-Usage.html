@@ -1,19 +1,70 @@
-<!DOCTYPE html><html lang="en"><head><title>Web-Log Generator Usage</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Usage guide for the site generator that I wrote for this web-log."><link rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2016-11-15_Web-Log-Generator-Usage.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li></ul></nav></header><main><article><header><h1>Web-Log Generator Usage</h1><div class="header-date-footer">Tue Nov 15 2016</div></header><h2>Structure</h2>
-<p><code>pub.js</code>:
-This is the main publishing code and entry point.</p>
-<p><code>md.js</code>:
-A wrapper for a markdown library.</p>
-<p><code>effess.js</code>:
-A promise based wrapper for common file IO functions used by <code>pub.js</code>.</p>
-<p><code>pages/</code>:
-Contains unique pages of the website written using Pug.</p>
-<p><code>templates/</code>:
-Pug templates used by pages and posts
-The <code>universal.pug</code> template should be used by all pages and posts.</p>
-<p><code>css/</code>:
-CSS and LESS files, compiled by the <code>main.less</code> file. The intent is to output a single <code>main.css</code> file.</p>
-<p><code>posts/</code>:
-Markdown files that represent posts to the web-log.</p>
+<!DOCTYPE html><html lang="en"><head><title>Web-Log Generator Usage</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="A quick run-down of the structure and usage of the code I wrote for generating this web-log."><link rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2016-11-15_Web-Log-Generator-Usage.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li></ul></nav></header><main><article><header><h1>Web-Log Generator Usage</h1><div class="header-date-footer">Tue Nov 15 2016</div></header><h2>Introduction</h2>
+<p>I wrote a static site generator script to create this website.
+I decided to write the whole thing from scratch instead of using existing projects in order to learn a bit of JS.
+Also writing things myself allowed me to customise things my own way:</p>
+<ul>
+<li>No annoying dependencies
+<ul>
+<li>Installing more than one of Ruby, Python and NodeJs is horrible.</li>
+<li>I chose Node.Js so that I could practice some JavaScript</li>
+</ul>
+</li>
+<li>Site shouldn't have any extraneous hard to understand JS.
+<ul>
+<li>This means no jQuery or any other lib bigger than my site's content.</li>
+<li>Also no convoluted responsive themes.</li>
+</ul>
+</li>
+<li>Should be comfortable to read on both small phones and large monitors.
+<ul>
+<li>No unpredictable scripted resizing that some responsive themes are guilty of.</li>
+<li>Limited reading width that reflows to smaller screens/windows (aka word wrap).</li>
+</ul>
+</li>
+<li>The HTML should validate and be impaired-reader friendly.</li>
+<li>Full syntax highlighting for code
+<ul>
+<li>I'm a software developer, I'll be writing about code.</li>
+</ul>
+</li>
+</ul>
+<p>The frameworks/libs I've used:</p>
+<ul>
+<li><a href="https://pugjs.org/">Pug</a> is used to template all pages and the content of unique pages.</li>
+<li><a href="lesscss.org">Less</a> is used to create the CSS.</li>
+<li>Markdown is used for authoring posts to the web-log
+(using <a href="https://github.com/markdown-it/markdown-it">markdown-it</a>
+with <a href="highlightjs.org">highlight.Js</a>).</li>
+<li>Node.Js 6 is used to tie everything together and generate the site in one command.</li>
+</ul>
+<h2>Structure</h2>
+<ul>
+<li>Code
+<ul>
+<li><code>pub.js</code>: This is the main publishing code and entry point.</li>
+<li><code>md.js</code>: A wrapper for a markdown library.</li>
+<li><code>effess.js</code>: A promise based wrapper for common file IO functions used by <code>pub.js</code>.</li>
+</ul>
+</li>
+<li>Style
+<ul>
+<li><code>templates/</code>: Pug templates used by pages and posts
+<ul>
+<li>The <code>universal.pug</code> template should be used by every page of the site.</li>
+<li>The <code>post.pug</code> template wraps the html generated from the Markdown posts.</li>
+</ul>
+</li>
+<li><code>css/</code>: CSS and LESS files, compiled by the <code>main.less</code> file.
+The intent is to output a single <code>main.css</code> file.</li>
+</ul>
+</li>
+<li>Content
+<ul>
+<li><code>pages/</code>: Contains unique pages of the website written using Pug.</li>
+<li><code>posts/</code>: Markdown files that represent posts to the web-log.</li>
+</ul>
+</li>
+</ul>
 <h2>Configuration</h2>
 <p>The basic site configuration should be tweaked for your site.
 It can be found in the <code>site</code> constant inside the <code>configure()</code> function at the beginning of <code>pub .js</code>.</p>
@@ -29,6 +80,25 @@ the <code>source</code> branch contains all this site generation code and unproc
 It allows allows everything to be kept in a single repository while separating the output and development.
 If you don't like this hack put the code and site data in a different repo.</p>
 </blockquote>
+<h2>Writing Posts</h2>
+<p>To avoid duplicating information the post date and title is read directly from the filename.
+As a result the file title must follow the standard pattern.</p>
+<pre><code>year-month-day_The Main Title Of the Post.md
+For example:
+2016-11-15_Web-Log Generator Usage.md
+</code></pre>
+<p>Any spaces in the title are converted to dashes for the url of the post,
+however dashes in the title are preserved for the title in the document.</p>
+<p>Front-matter in the document is optional, the essential information is all in the filename.
+In order to add a description for the metadata and index entry for the post insert a Json block to the start
+of the document. It must begin on the first line of the document.</p>
+<pre><code class="language-json">{ 
+    <span class="hljs-attr">"description"</span>: <span class="hljs-string">"A quick run-down of the structure and usage of the code I wrote for generating this web-log."</span> 
+}
+</code></pre>
+<p>Json was chosen because it is easy to use and doesn't usually confuse markdown parsers.</p>
+<p>Do not repeat the title in the document, it will be inserted automatically as a <code>h1</code> at the beginning.
+Also do no use <code>h1</code> (a single <code>#</code> heading) in the document because this should only be used for the main title.</p>
 <h2>Generating the Site</h2>
 <p>The <code>test</code> and <code>debug</code> flags are optional, may be a good idea on first try.</p>
 <p>Test mode outputs the site to <code>test/</code> with resolved file urls so that links work when the files are opened without a
