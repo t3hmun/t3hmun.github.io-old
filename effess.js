@@ -102,7 +102,7 @@ function readFilesInDir(dirPath, filterFunc, encoding) {
 /**
  * Writes data from each item.
  * @param {[]} items - Objects to write a file for each.
- * @param {function({}):{}} func - Function that returns the {dir, fileName, data} for each item.
+ * @param {function({}):[]} func - Function that returns the [dir, fileName, data] for each item.
  * @return {Promise} - void.
  */
 function writeMany(items, func) {

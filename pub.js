@@ -30,7 +30,7 @@ function configure() {
         postDir: 'posts',
         pageDir: 'pages',
         cssDir: 'css',
-        imgDir: 'img'
+        jsDir: 'js'
     };
 
     if (process.argv.length > 2) {
@@ -65,59 +65,88 @@ function publish(site, outputDir, debug, test) {
     // TODO: Move remaining string literals from here to configure().
     let cssOutputDir = path.join(outputDir, site.cssDir);
     let postOutputDir = path.join(outputDir, site.postDir); // Must be relative for url generation.
+    let jsOutputDir = path.join(outputDir, site.jsDir);
 
     // Read files from disk and perform any processing that doesn't rely on other files.
     let templatesLoaded = loadTemplates('./templates', debug);
     let postsLoaded = loadPosts('./posts', postOutputDir, debug);
     let lightCssRendered = renderLessToCss('./css/light.less', !test, debug);
     let darkCssRendered = renderLessToCss('./css/dark.less', !test, debug);
+    let jsLoaded = loadJS('./js', debug);
 
     // Create output directories - don't try doing this in parallel, they both try to create the test dir.
-    let createDirs = effess.ensureDirCreated(postOutputDir).then(()=> {
-        return effess.ensureDirCreated(cssOutputDir)
-    }).catch((err)=> {
+    let createDirs = effess.ensureDirCreated(postOutputDir).then(() => {
+        return effess.ensureDirCreated(cssOutputDir);
+    }).then(() => {
+        return effess.ensureDirCreated(jsOutputDir);
+    }).catch((err) => {
         errorAndExit(err);
     });
 
     // Creation tasks that rely on previously loaded files.
-    let postTemplateApplied = Promise.all([postsLoaded, templatesLoaded]).then((tasksResults)=> {
+    let postTemplateApplied = Promise.all([postsLoaded, templatesLoaded]).then((tasksResults) => {
         return applyPostTemplates(...tasksResults, site, test, debug);
     });
 
     // Render and write pages - they require posts for generating the indexes.
-    postsLoaded.then((posts)=> {
+    postsLoaded.then((posts) => {
         posts.dir = site.postDir;
-        return renderPugPages('./pages', site, posts, test, debug).then((pages)=> {
-            return effess.writeMany(pages, (page)=> {
+        return renderPugPages('./pages', site, posts, test, debug).then((pages) => {
+            return effess.writeMany(pages, (page) => {
                 return [outputDir, page.fileName, page.html];
             });
         });
-    }).catch((err)=> {
+    }).catch((err) => {
         errorAndExit(err);
     });
 
     // Write files.
-    let writePosts = Promise.all([postTemplateApplied, createDirs]).then((taskResults)=> {
+    let writePosts = Promise.all([postTemplateApplied, createDirs]).then((taskResults) => {
         let [posts] = taskResults;
-        return effess.writeMany(posts, (post)=> {
+        return effess.writeMany(posts, (post) => {
             return [postOutputDir, post.urlName, post.html];
         });
-    }).catch((err)=> {
+    }).catch((err) => {
         errorAndExit(err);
     });
 
-    let writeCSS = Promise.all([lightCssRendered, darkCssRendered, createDirs]).then((results)=> {
+    let writeCSS = Promise.all([lightCssRendered, darkCssRendered, createDirs]).then((results) => {
         let [light, dark] = results;
         let lightPromise = effess.write(cssOutputDir, 'light.css', light.css);
         let darkPromise = effess.write(cssOutputDir, 'dark.css', dark.css);
         return Promise.all([lightPromise, darkPromise]);
-    }).catch((err)=> {
+    }).catch((err) => {
         errorAndExit(err);
     });
 
-    Promise.all([writePosts, writeCSS]).then(()=> {
+    let writeJS = jsLoaded.then((result) => {
+        return effess.writeMany(result, (file) => {
+            return [jsOutputDir, file.name, file.data];
+        });
+    }).catch((err) => {
+        errorAndExit(err)
+    });
+
+    Promise.all([writePosts, writeCSS, writeJS]).then(() => {
         console.log('Publish complete.');
     });
+}
+
+/**
+ * Read all the files from the JS dir. Doesn't do anything else yet.
+ * @param jsDir - Directory containing the js files.
+ * @param {boolean} debug - True enables debug mode.
+ * @return {Promise<{}[]>} - List of {name, path, dir, data} objects.
+ */
+function loadJS(jsDir, debug) {
+    // This could have a minify step but I don't have enough js to bother.
+    let files = effess.readFilesInDir(jsDir);
+    if(debug){
+        files.then((result)=>{
+            console.log(`loaded ${result.length} js files`);
+        });
+    }
+    return files;
 }
 
 /**
@@ -127,11 +156,11 @@ function publish(site, outputDir, debug, test) {
  * @param {{}[]} posts - All the posts, used for index generating.
  * @param {boolean} test - True enables test mode, makes the HTML pretty.
  * @param {boolean} debug - True enables debug output.
- * @return {Promise.<{}[]>} - List of {html, fileName}.
+ * @return {Promise<{}[]>} - List of {html, fileName}.
  */
 function renderPugPages(pageDir, site, posts, test, debug) {
     debug && console.log('Rendering pug pages ...');
-    return effess.readFilesInDir(pageDir, (fileName)=>fileName.endsWith('.pug')).then((files)=> {
+    return effess.readFilesInDir(pageDir, (fileName) => fileName.endsWith('.pug')).then((files) => {
         let options = {
             site: site,
             posts: posts,
@@ -139,8 +168,8 @@ function renderPugPages(pageDir, site, posts, test, debug) {
         };
 
         let renders = [];
-        files.forEach((file)=> {
-            renders.push(new Promise((resolve)=> {
+        files.forEach((file) => {
+            renders.push(new Promise((resolve) => {
                 options.filename = file.path;
                 let html = pug.render(file.data, options);
                 let page = {};
@@ -166,10 +195,10 @@ function renderPugPages(pageDir, site, posts, test, debug) {
  */
 function applyPostTemplates(posts, templates, site, test, debug) {
     debug && console.log('Applying post templates ...');
-    return new Promise((resolve, reject)=> {
+    return new Promise((resolve, reject) => {
         let postTemplate = templates.find((e) => e.name == 'post');
         try {
-            posts.forEach((post)=> {
+            posts.forEach((post) => {
                 // The post template is just the contents of the main tag of the article page.
                 post.html = postTemplate.func({
                     filename: post.fileName,
@@ -197,7 +226,7 @@ function applyPostTemplates(posts, templates, site, test, debug) {
  */
 function renderLessToCss(filePath, compress, debug) {
     debug && console.log('Rendering CSS from LESS...');
-    return effess.read(filePath).then((data)=> {
+    return effess.read(filePath).then((data) => {
         let lessOptions = {
             filename: path.resolve(filePath),
             paths: path.parse(filePath).dir,
@@ -229,11 +258,11 @@ function errorAndExit(err) {
  */
 function loadTemplates(dir, debug) {
     debug && console.log('Loading templates ...');
-    let filter = (fileName)=>fileName.endsWith('.pug');
-    return effess.readFilesInDir(dir, filter).then((files)=> {
+    let filter = (fileName) => fileName.endsWith('.pug');
+    return effess.readFilesInDir(dir, filter).then((files) => {
         let templates = [];
         try {
-            files.forEach((file)=> {
+            files.forEach((file) => {
                 let options = {filename: file.path}; // Only needed to add detail to errors.
                 let template = pug.compile(file.data, options);
                 templates.push({
@@ -260,9 +289,9 @@ function loadTemplates(dir, debug) {
 function loadPosts(dir, outputDir, debug) {
     debug && console.log('Loading posts ...');
     let filter = (fileName) => fileName.endsWith('.md');
-    return effess.readFilesInDir(dir, filter).then((files)=> {
+    return effess.readFilesInDir(dir, filter).then((files) => {
         let posts = [];
-        files.forEach((file)=> {
+        files.forEach((file) => {
             let mdContent;
             let post;
             if (file.data.startsWith('{')) {
