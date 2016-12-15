@@ -1,16 +1,21 @@
+> This is a subject of interest because I'm currently writing an Android app for myself.
+
+## Intro
+
 I don't enjoy the design of most mobile apps.
 UIs seems to be designed based on aesthetics and not usability.
 Reaching around the screen is often very uncomfortable and cumbersome.
 
-There are two parts to usability: affordance and comfort.
+I'm looking at usability from two aspects: affordance and comfort.
 
-The considerations in this article are entirely from my point of view; 
-I'd do some actual research if I was designing for other people.
+This article are entirely from my point of view;
+it is what might work for people similar to me, 
+I haven't considered the wider set of possible users.
 
 ## Reach
 
-The most annoying feature I encounter everyday is interactive elements that I can't reach.
-The phone is held and operated by one hand and I cannot reach the entire screen comfortably.
+The most annoying feature I encounter everyday are interactive elements that I can't physically reach.
+I normally operate my phone with one hand and my thumb cannot comfortably reach the whole screen.
 
 Assuming one hand usage with thumb interacting with the screen:
 
@@ -69,6 +74,7 @@ For most other content however this is rather minor.
 The most common menu design on android is the hamburger menu.
 The hamburger menu positioned at the top of the screen in the terrible comfort zone.
 
+
 ### Edge Swiped Menu
 
 These days it is common to summon the hamburger and other menus via an edge swiping gesture.
@@ -81,13 +87,15 @@ the phone gets squashed into the hand and the touch gets confused.
 The bigger the screen the worse it gets, to the point where you can no longer reach the edge to swipe.
 To add to this the gesture often gets confused with swiping the screen content, the Google Maps app is a prime example.
 
+
 ### Floating Action Button
 
 The second android approach is the floating action button, a round button in the bottom corner of the screen.
 That is position in my bad comfort zone, but this kind of menu should't be used that often so it is OK.
 However I do have a problem with them, I rarely notice them.
-I'm not sure if it is just my my mind filtering things, or the lower visibility of bottom corners.
+I'm not sure if it is just my mind filtering things, or the lower visibility of bottom corners.
 I find the floating action button design to be a mess, I rarely have any idea of what it is going to do.
+
 
 ### Tab Bar
 
@@ -100,3 +108,6 @@ appears to be the most comfortable menu for me.
 
 The obvious big difference is that it is a small direct menu, not a large hidden menu as discussed before.
 However this is probably a good thing, forces the design to stay simple and high level.
+
+It turns out that Google realised that this is a good approach and updated [their guidelines](https://material.google
+.com/components/bottom-navigation.html#bottom-navigation-style) earlier this year.
