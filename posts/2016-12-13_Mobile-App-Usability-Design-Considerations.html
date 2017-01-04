@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><title>Mobile App Usability Design Considerations</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="t3hmun's web log"><link id="main-css" rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2016-12-13_Mobile-App-Usability-Design-Considerations.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Mobile App Usability Design Considerations</h1><div class="header-date-footer">Tue Dec 13 2016</div></header><blockquote>
+<p>This is a subject of interest because I'm currently writing an Android app for myself.</p>
+</blockquote>
+<h2>Intro</h2>
+<p>I don't enjoy the design of most mobile apps.
+UIs seems to be designed based on aesthetics and not usability.
+Reaching around the screen is often very uncomfortable and cumbersome.</p>
+<p>I'm looking at usability from two aspects: affordance and comfort.</p>
+<p>This article are entirely from my point of view;
+it is what might work for people similar to me,
+however this does not consider any wider research.</p>
+<h2>Design Considerations</h2>
+<h3>Reach</h3>
+<p>The most annoying feature I encounter everyday are interactive elements that I can't physically reach.
+I normally operate my phone with one hand and my thumb cannot comfortably reach the whole screen.</p>
+<p>Assuming one hand usage with thumb interacting with the screen:</p>
+<pre><code> Screen reach comfort:                                                              
+ Right hand grip               Both hands overlayed                                 
+ +-------------------------+   +-------------------------+                          
+ |                         |   |                         |                          
+ |                         |   |                         |                          
+ |                         |   |        TERRIBLE         |                          
+ |      TERRIBLE        ---|   |                         |                          
+ |                -----/   |   |                         |                          
+ |          -----/         |   |          -- --          |                          
+ |       --/               |   |       --/     \--       |                          
+ |     -/                  |   |     -/           \-     |                          
+ |  --/                    |   |  --/               \--  |                          
+ |-/                       |   |-/                     \-|                          
+ |                         |   |                         |                          
+ |         GOOD            |   |          GOOD           |                          
+ |                         |   |                         |                          
+ |                         |   |                         |                          
+ |                      ---|   |---                   ---|                          
+ |                  ---/   |   |   \---           ---/   |                          
+ |                  |      |   |      |           |      |                          
+ |                 /  BAD  |   | BAD   \         /  BAD  |                          
+ |                 |       |   |       |         |       |                          
+ +-------------------------+   +-------------------------+ 
+</code></pre>
+<p>From the diagram the good comfort reach zone is rather small.
+Anything that is interacted with very often must be in the good comfort area.</p>
+<p>The bottom corners of the screen are difficult but not impossible to reach.
+The top is and absolute pain to reach, requires shuffling the entire phone across the hand,
+a manoeuvre that sometimes results in dropping the phone on my face. Terrible.</p>
+<p>My rules:</p>
+<ul>
+<li>Most interactive content should be in the good zone.</li>
+<li>Only the most rarely interacted-with items can be allowed in the terrible zone.</li>
+<li>Only occasionally interacted items should be in the bad zone.</li>
+</ul>
+<h3>Visibility</h3>
+<p>My thumb tends to hover over the bottom half of the screen, making is slightly less visible.
+Therefore the best zone for viewing is the top half, especially content that is quickly scanned and dismissed.</p>
+<p>My thumb is most likely to be blocking any area with buttons.
+This makes the rest of the screen better for information that changes often due to interactions.
+Also as a result it is better to have buttons at the bottom so less of the screen is blocked by reaching.</p>
+<p>The bottom edge of the screen is the most likely to be obscured so using buttons in that area may incur a tiny delay.</p>
+<h2>Relevance in Menu Design</h2>
+<h3>Hamburger Menu / Top buttons</h3>
+<p>The most common menu design on android is the hamburger menu.
+The hamburger menu positioned at the top of the screen in the terrible comfort zone.
+Same issue with other buttons placed at the top in the title bar space including the 3 dot drop down menu.
+Might be ok for a very rarely used menu, however should be avoided if there are other options.</p>
+<h3>Edge Swiped Menu</h3>
+<p>These days it is common to summon the hamburger and other menus via an edge swiping gesture.
+Although this is an improvement over just the hamburger, I do not find this satisfactory.</p>
+<p>Swiping actions rarely have any affordance, there is nothing on the screen to indicate it as a possibility.
+A tiny handle on the edge of the screen linked to the menu button might work, but tends interfere with content.</p>
+<p>Swiping also has a tendency to fail when on the other side of the screen;
+the phone gets squashed into the hand and the touch gets confused.
+The bigger the screen the worse it gets, to the point where you can no longer reach the edge to swipe.</p>
+<p>Another problem is that the gesture often gets confused with swiping the screen content, the Google Maps app is a
+prime example.</p>
+<p>All these problems lead to edge swiping being unreliable, it does not work as a standard interaction for me.</p>
+<h3>Tab Bar</h3>
+<p>Apple's bottom of the screen <a href="https://developer.apple.com/ios/human-interface-guidelines/ui-bars/tab-bars/">tab bar</a>
+appears to be the most comfortable menu for me.</p>
+<ul>
+<li>It is rather obvious, covering the whole bottom edge of the screen.</li>
+<li>It is easy enough to interact occasionally.</li>
+<li>It provides immediate access to the menu, it is not a hidden menu.</li>
+</ul>
+<p>The obvious big difference is that it is a small direct menu, not a large hidden menu as discussed before.
+However this is probably a good thing, forces the design to stay simple and high level.
+An app that cannot be simplified to a few options may need to think differently.</p>
+<p>It turns out that Google realised that this is a good approach and updated
+<a href="https://material.google.com/components/bottom-navigation.html#bottom-navigation-style">their guidelines</a> earlier this year.</p>
+<h2>Outro</h2>
+<p>So far I've only considered menus, eventually I'll write about other parts of the UI and how to get the happiest
+interactions with them.</p>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
