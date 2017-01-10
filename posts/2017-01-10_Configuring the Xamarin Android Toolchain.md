@@ -2,14 +2,15 @@
 
 I'm probably going to wipe my computer when I upgrade some bits soon.
 
-There are some niggles in setting up Xamarin to produce publishable APKs with the latest build tools.
+There are some niggles in setting up Xamarin (VS2015 Win10) to produce publishable APKs with the latest build tools.
 
 This is a run down of the bits.
 
 
 ## Visual Studio
 
-Start by installing Visual Studio with all the Xamarin related option ticked.
+* Start installing Visual Studio with all the Xamarin related options ticked.
+* Take a nap.
 
 If you already have Android SDK installed, Visual Studio might not detect it so beware.
 Either google a solution or just delete it afterwards.
@@ -37,7 +38,7 @@ The Proguard installed with the Android SDK will probably also be out of date, n
     * API 25 SDK Platform
     * If available (not yet available at time of writing) API 25 (Android 7) Intel x86 Atom system image.
     * API 21 (Android 6) Intel x86 Atom system image.
-    * API 25 (Android 4.4.2) Intel x86 Atom system image (assuming this is lowest API you support).
+    * API 19 (Android 4.4.2) Intel x86 Atom system image (assuming this is lowest API you support).
 * Download the latest [Proguard from SourceForge](https://sourceforge.net/projects/proguard/).
     * Replace `android-sdk\tools\proguard` with the new version.
    
