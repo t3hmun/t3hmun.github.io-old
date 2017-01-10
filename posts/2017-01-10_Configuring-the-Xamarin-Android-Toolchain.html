@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="en"><head><title>Configuring the Xamarin Android Toolchain</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="t3hmun's web log"><link id="main-css" rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2017-01-10_Configuring-the-Xamarin-Android-Toolchain.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Configuring the Xamarin Android Toolchain</h1><div class="header-date-footer">Tue Jan 10 2017</div></header><h2>What</h2>
+<p>I'm probably going to wipe my computer when I upgrade some bits soon.</p>
+<p>There are some niggles in setting up Xamarin (VS2015 Win10) to produce publishable APKs with the latest build tools.</p>
+<p>This is a run down of the bits.</p>
+<h2>Visual Studio</h2>
+<ul>
+<li>Start installing Visual Studio with all the Xamarin related options ticked.</li>
+<li>Take a nap.</li>
+</ul>
+<p>If you already have Android SDK installed, Visual Studio might not detect it so beware.
+Either google a solution or just delete it afterwards.</p>
+<h2>Android SDK</h2>
+<p>Visual Studio will install Android SDK inside of &quot;Program Files (x86)&quot;.
+Unfortunately this can upset Proguard so move the SDK folder somewhere else.</p>
+<p>In Visual Studio go to the <code>Options&gt;Xamarin</code> and set the new location of the Android SDK.</p>
+<h2>Build Tools 25 and Java 8</h2>
+<p>In order to use the latest build tools (25.x.x) Java 8 SDK (1.8) is needed.
+Visual Studio most probably installed Java 7 SDK with build tools 24.x.x.
+The Proguard installed with the Android SDK will probably also be out of date, not compatible with JDK 1.8.</p>
+<ul>
+<li>Install <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java 8 SDK</a></li>
+<li>In Visual Studio update <code>Options&gt;Xamarin</code> to use JDK 8.</li>
+<li>Open Android SDK manager and install:
+<ul>
+<li>Any updates</li>
+<li>Latest 25.x.x Tools, Build Tools and Platform Tools</li>
+<li>API 25 SDK Platform</li>
+<li>If available (not yet available at time of writing) API 25 (Android 7) Intel x86 Atom system image.</li>
+<li>API 21 (Android 6) Intel x86 Atom system image.</li>
+<li>API 19 (Android 4.4.2) Intel x86 Atom system image (assuming this is lowest API you support).</li>
+</ul>
+</li>
+<li>Download the latest <a href="https://sourceforge.net/projects/proguard/">Proguard from SourceForge</a>.
+<ul>
+<li>Replace <code>android-sdk\tools\proguard</code> with the new version.</li>
+</ul>
+</li>
+</ul>
+<h2>Test It</h2>
+<ul>
+<li>Make a new <code>Single View App (Android)</code> project in Visual Studio.</li>
+<li>Switch to <code>Release Build</code>.</li>
+<li>Open project properties:
+<ul>
+<li>Application tab: Set Minimum Android version to 19 (or whatever you want).</li>
+<li>Android Options Tab:
+<ul>
+<li>Untick <code>Use Shared Runtime</code></li>
+<li>Untick <code>Enable developer instrumentation</code></li>
+<li>Tick <code>Enable Proguard</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Save</li>
+<li>Rebuild Solution</li>
+<li>Celebrate</li>
+</ul>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
