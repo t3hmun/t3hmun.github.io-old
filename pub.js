@@ -89,7 +89,8 @@ function publish(site, outputDir, debug, test) {
     });
 
     // Render and write pages - they require posts for generating the indexes.
-    postsLoaded.then((posts) => {
+    Promise.all([createDirs, postsLoaded]).then((results) => {
+        let posts = results[1];
         posts.dir = site.postDir;
         return renderPugPages('./pages', site, posts, test, debug).then((pages) => {
             return effess.writeMany(pages, (page) => {
@@ -119,7 +120,8 @@ function publish(site, outputDir, debug, test) {
         errorAndExit(err);
     });
 
-    let writeJS = jsLoaded.then((result) => {
+    let writeJS = Promise.all([createDirs, jsLoaded]).then((results) => {
+        let result = results[1];
         return effess.writeMany(result, (file) => {
             return [jsOutputDir, file.name, file.data];
         });
@@ -308,7 +310,7 @@ function loadPosts(dir, outputDir, debug) {
             post.fileName = file.name;
             post.html = md.convert(mdContent);
 
-            setPostDateTitleInfo(post);
+            setPostDateTitleInfo(post, debug);
             post.url = path.join(outputDir, post.urlName);
             posts.push(post);
         });
@@ -322,15 +324,20 @@ function loadPosts(dir, outputDir, debug) {
  * @param {{}} post - The post that will have properties added.
  * @returns {void}
  */
-function setPostDateTitleInfo(post) {
+function setPostDateTitleInfo(post, debug) {
     let info = path.parse(post.filePath);
     post.file = info;
     let div = info.name.indexOf('_');
     let dateStr = info.name.slice(0, div);
     post.date = new Date(dateStr);
     post.title = info.name.slice(div + 1);
-    // Urls are not fun with spaces.
-    post.urlName = info.name.replace(/\s/g, '-') + '.html';
+    // Urls are not fun with spaces or commas.
+    let spacesReplaced = info.name.replace(/[\s.]/g, '-');
+    // This replace is very custom to my web-log.
+    let sharpReplaced = spacesReplaced.replace(/#/g, 'Sharp');
+    let badWebUrlCharsRemoved = sharpReplaced.replace(/[£$%^&()+=,\[\]]/g, '');
+    debug && console.log(badWebUrlCharsRemoved);
+    post.urlName = badWebUrlCharsRemoved + '.html';
 }
 
 
