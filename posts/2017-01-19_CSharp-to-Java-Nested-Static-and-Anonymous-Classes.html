@@ -1,0 +1,159 @@
+<!DOCTYPE html><html lang="en"><head><title>C# to Java Nested, Static and Anonymous Classes</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="t3hmun's web log"><link id="main-css" rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2017-01-19_CSharp-to-Java-Nested-Static-and-Anonymous-Classes.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>C# to Java Nested, Static and Anonymous Classes</h1><div class="header-date-footer">Thu Jan 19 2017</div></header><h2>What what and what?</h2>
+<p>Java has a significantly different concept of nested classes to C#.
+As a result static class and anonymous class have different meanings.
+All kinds of nested classes have different abilities.</p>
+<p>As a C# dev working with Java you will want to read the following docs:</p>
+<ul>
+<li><a href="http://docs.oracle.com/javase/tutorial/java/javaOO/nested.html">Nested Classes</a></li>
+<li><a href="http://docs.oracle.com/javase/tutorial/java/javaOO/localclasses.html">Local Classes</a></li>
+<li><a href="http://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html">Anonymous Classes</a></li>
+</ul>
+<p>Those three docs give a good overview of what these features are in Java.
+This article contrasts these features to C# and looks a bit more at what is going on.</p>
+<h2>Nested Classes</h2>
+<p>In C# a nested class is mostly used just like any other top level class.
+The difference is that it is accessed through the name of the containing class.</p>
+<pre><code class="language-csharp"><span class="hljs-keyword">internal</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Containing</span>
+{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> <span class="hljs-keyword">string</span> aPrivateVar = <span class="hljs-string">"Hi."</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Nested</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Nested</span>(<span class="hljs-params"></span>)
+        </span>{
+            <span class="hljs-comment">// There is no such a thing as `Containing.this` in C#</span>
+            <span class="hljs-comment">// Instead pass the `Containing` object in through the ctor (or a method, property etc..).</span>
+            Console.WriteLine(<span class="hljs-string">"Nested ctor."</span>);
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">FeelsLikeAnEcapsulationViolation</span>(<span class="hljs-params"></span>)
+        </span>{
+            <span class="hljs-comment">// Nested class can access private vars from any instance of its Containing class.</span>
+            <span class="hljs-keyword">var</span> instanceOfContaining = <span class="hljs-keyword">new</span> Containing();
+            Console.WriteLine(instanceOfContaining.aPrivateVar);
+        }
+    }
+}
+
+</code></pre>
+<p>In C# the nested class can only get access to an containing class instance if a reference is provided.
+The nested instance is independent from any instance of the containing class.</p>
+<p>There is one special feature of nested classes in C#;
+it can access private and protected members of any references to instances of its containing class.</p>
+<p>Java is a completely different beast.
+Nested classes in Java are implicitly created with a reference to the containing class.
+They cannot be created without an instance of the containing class to link to.</p>
+<pre><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Container</span> </span>{
+
+    <span class="hljs-keyword">private</span> String privateVar = <span class="hljs-string">"Hello."</span>;
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+
+        <span class="hljs-comment">// This next commented line is invalid in Java.</span>
+        <span class="hljs-comment">//Nested nestedInstance = new Nested();</span>
+
+        Container containerInstance = <span class="hljs-keyword">new</span> Container();
+        Nested nestedInstance = containerInstance.new Nested(<span class="hljs-string">" Created externally."</span>);
+        nestedInstance.AccessPrivateVarFromContainer(); <span class="hljs-comment">// Prints `Hello. Created externally.`.</span>
+        containerInstance.CreateNestedInstance(); <span class="hljs-comment">// Prints `Hello, Created internally.`.</span>
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">CreateNestedInstance</span><span class="hljs-params">()</span></span>{
+        Nested nestedInstance = <span class="hljs-keyword">new</span> Nested(<span class="hljs-string">" Created internally."</span>);
+        nestedInstance.AccessPrivateVarFromContainer();
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Nested</span></span>{
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String id;
+
+        Nested(String id){
+            <span class="hljs-keyword">this</span>.id = id;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">AccessPrivateVarFromContainer</span><span class="hljs-params">()</span></span>{
+            String x = Container.<span class="hljs-keyword">this</span>.privateVar;
+            System.out.println(x + id);
+        }
+    }
+}
+</code></pre>
+<h2>Static Classes</h2>
+<p>In C# a static class is a class that cannot be instantiated and hence can only contain static members.</p>
+<p>In Java static class means something totally different.
+To start with Java does not have a top level static class, they are always nested.
+The Java nested static class is a nested class without an implicit reference to the containing class.
+This is practically the same as a C# non-static nested class.</p>
+<h2>Anonymous Classes</h2>
+<p>C# has anonymous types, which are just a collection of readonly properties.
+Methods and other things cannot be added to anonymous types.</p>
+<pre><code class="language-csharp"><span class="hljs-keyword">var</span> anon = {name = <span class="hljs-string">"monkeys"</span>, someThingElse = otherObject};
+Console.WiteLine(anon.name)<span class="hljs-comment">// monkeys</span>
+Console.WriteLine(anon.someThingElse) <span class="hljs-comment">// The `.ToString()` of `otherObject`.</span>
+</code></pre>
+<p>Java anonymous classes are again a kind of inner class.
+An anonymous class is declared in an expression that looks like a normal new class followed by <code>{}</code>.
+The expression creates a subclass with the overridden methods defined in the braces.</p>
+<pre><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>{
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+	    Main main = <span class="hljs-keyword">new</span> Main();
+	    main.DoVoodoo(); <span class="hljs-comment">// prints `Hello \n wo0o0o0o \n Hi`</span>
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SayHello</span><span class="hljs-params">()</span>
+    </span>{
+        System.out.println(<span class="hljs-string">"Hello "</span>);
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SayHi</span><span class="hljs-params">()</span></span>{
+        System.out.println(<span class="hljs-string">" Hi"</span>);
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">DoVoodoo</span><span class="hljs-params">()</span></span>{
+        Main voodoo = <span class="hljs-keyword">new</span> Main(){
+            <span class="hljs-comment">// The public modifier is of no use on a non-overridden member of an anonymous class.</span>
+            <span class="hljs-comment">// It is public here to demonstrate how useless it is.</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">someMethod</span><span class="hljs-params">()</span></span>{
+                System.out.println(<span class="hljs-string">" wo0o0o0o "</span>);
+            }
+
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">SayHello</span><span class="hljs-params">()</span> </span>{
+                <span class="hljs-keyword">super</span>.SayHello();
+                someMethod();
+            }
+        };
+        
+        voodoo.SayHello();
+        voodoo.SayHi();
+        
+        <span class="hljs-comment">// This next method can't work because it is not part of the `Main` class.</span>
+        <span class="hljs-comment">// voodoo is equivalent to a subclass of `Main` cast to `Main`.</span>
+        <span class="hljs-comment">//voodoo.someMethod();</span>
+    }
+}
+</code></pre>
+<p>The next example helps reveal the true nature of the anonymous class.
+This direct usage of the anonymous class isn't practical but it shows it exists.</p>
+<pre><code class="language-java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>{
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>{
+	    Main main = <span class="hljs-keyword">new</span> Main();
+	    main.AnonymousNature();
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">AnonymousNature</span><span class="hljs-params">()</span></span>{
+        <span class="hljs-keyword">new</span> Main(){
+            <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ratherSillyISay</span><span class="hljs-params">()</span></span>{
+                System.out.println(<span class="hljs-string">"Rather silly."</span>);
+            }
+        }.ratherSillyISay();
+
+        <span class="hljs-comment">// Can't do anything else with the anonymous class because there is no reference to it.</span>
+        <span class="hljs-comment">// Can't create a reference because it has no name.</span>
+    }
+}
+</code></pre>
+<p>Anonymous classes have another fascinating aspect, it is possible to new an interface.
+Effectively it creates an empty class on which you implement the interface.</p>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
