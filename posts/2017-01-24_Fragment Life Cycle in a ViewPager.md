@@ -36,16 +36,16 @@ but it is essential to know it is there managing the creation and destruction of
 
 ## ViewPager
 
-The ViewPager implements and manages the animation and page swiping interaction.
+The ViewPager manages the animation and page swiping interaction.
 
 It is rather un-interesting unless you want to do some custom animation, 
-in which case go read about ViewPager.PageTransformer
+in which case go read about ViewPager.PageTransformer.
 
 
-## PageAdapter FragmentPageAdapter and the Fragments
+## The Adapter and the Fragments
 
 The PageAdapter has the task of supplying the ViewPager with the views to display in each page.
-The ViewPager asks the adapter to create and destroy view as it needs them.
+The ViewPager asks the adapter to create and destroy views as it needs them.
 
 The FragmentPageAdapter is an implementation of PageAdapter using Fragments for each page.
 Inside FragmentPageAdapter the FragmentManager is used to cache and manage the page Fragments efficiently.
@@ -54,21 +54,21 @@ Have a quick read of the [FragmentPageAdapter source code](https://android.googl
 It is short and simple.
 
 
-### Creation
+### Fragment Creation
 
-When the app start the ViewPager will ask the adapter for up to three pages, the current next and previous.
+When the app starts the ViewPager will ask the adapter for up to three pages, the current next and previous pages.
 This is required so that the both views can be seen when swiping between 2 views.
 
 The first major source of confusion is the `FragmentPageAdapter.getItem()` method.
 
-* Every time the ViewPager asks for a view the adapter first asks the FragmentManager,
+* Every time the ViewPager asks for a view the adapter first asks the FragmentManager.
 * The FragmentAdapter only calls `getItem()` if the fragment is not found in the FragmentManager.
 * After calling `getItem()` the fragment is immediately added to the FragmentManager.
 
 So `getItem` is only used to initialise a fragment the first time that it is used.
 
 
-### Destruction (Partial)
+### Fragment Destruction (Partial)
 
 When the page is no longer visible or adjacent to the visible page the ViewPager asks the adapter to destroy it.
 However the FragmentPageAdapter doesn't destroy the fragment entirely.
@@ -136,6 +136,6 @@ You are in luck.
 
 https://github.com/t3hmun/OnTheNatureOfFragmentsAndTheActivityLifeCycle
 
-It is a basic modification of the default `Tabbed-Activity > SwipeViews` template with a lot of logging.
+It is a basic modification of the default `Tabbed-Activity` - `SwipeViews` template with a lot of logging.
 
 Run it in Android studio, watch the log messages show you exactly what part of the activity and fragment lifecycle is happening when you swipe views and rotate.
