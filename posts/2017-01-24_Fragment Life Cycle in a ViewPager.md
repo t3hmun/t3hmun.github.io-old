@@ -1,31 +1,31 @@
 ## What
 
-What happens to an instance of a fragment class, when does it happen and why?
-If your first foray into fragments is via ViewPager the functionality of fragments is completely opaque.
+What happens to an instance of an Android Fragment, when does it happen and why?
+
+When using ViewPager and FragmentAdapter, the important details hidden and it is easy to make a complete mess.
 
 The documentation on Android fragments isn't as comprehensive as I would like.
-
-
-Even after reading all the documentation for 
+I read all of the documentation for 
 `ViewPager`, 
 `PagerAdapter`, 
 `FragmentPagerAdapter` 
 and 
 `Fragment Manager`
-the workings remain somewhat mysterious.
+but the workings remained somewhat mysterious.
 
 
 In this article I will enlighten you as to what is going on.
 
 
 It may be helpful to create a new project in Android Studio, with a tabbed activity with a ViewPager navigation style.
-That is the default template that this article is based on.
+That is the default template that this article is based on. Or download my [demo app from github](https://github.com/t3hmun/OnTheNatureOfFragmentsAndTheActivityLifeCycle).
 
 ## The All Important FragmentManager
 
 Fragments are managed by the FragmentManager.
 It is possible to use fragments without it, but proper use of FragmentManager is usually recommended for efficiency.
-The FragmentManager facilitates putting fragment changes on the back-stack and the restoration of destroyed views.
+The FragmentManager manages the life-cycle of the fragment in coordination with the activity lifecycle.
+It does some clever things for efficiency, but the machinations are somewhat perilous to the uninitiated.
 
 When a fragment is inserted directly into a xml layout the FragmentManager is automatically used in the background.
 FragmentPageAdapter also does all the essential FragmentManager work in its implementation.
