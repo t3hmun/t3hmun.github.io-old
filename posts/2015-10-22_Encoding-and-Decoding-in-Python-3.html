@@ -1,0 +1,265 @@
+<!DOCTYPE html><html lang="en"><head><title>Encoding and Decoding in Python 3</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Clear up the confusing and troublesome nature of encoding and decoding in Python 3, especially when utf-8 and the console is involved."><link id="main-css" rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2015-10-22_Encoding-and-Decoding-in-Python-3.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><li><a href="https://t3hmun.github.io/info.html">Info</a></li><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Encoding and Decoding in Python 3</h1><div class="header-date-footer">Thu Oct 22 2015</div></header><h2>What</h2>
+<p>This is an article for people wanting to understand the following error with Python 3:</p>
+<pre><code>...
+UnicodeEncodeError: 'charmap' codec can't encode character
+...
+</code></pre>
+<p>Part of an error usually encountered when printing to a console, but possible in many other text situations.
+If you are interested in fully understanding the root issue, instead of just copy-pasting SO posts, read on.</p>
+<h2>The Problem</h2>
+<p>Internally Python 3 <strong>always</strong> uses UTF-8 for its strings.
+However the source and or destination of a string may have another encoding.</p>
+<p>Python 2 does not strictly store its strings as utf-8 so one may encounter all sorts of bizarre encoding decoding samples that are only applicable to Python 2. This article only concerns Python 3.</p>
+<h3>How <code>print</code> Works</h3>
+<p><a href="https://docs.python.org/3/library/functions.html#print">Print is a pretty basic function</a> that tries to convert whatever you give it to a string, adds a newline, and the passes it on to <code>sys.stdout.write</code>. It has other options, but we're only interested in its default use at the moment.</p>
+<p>The <code>sys.stdout.write</code> function is <a href="https://docs.python.org/3/library/sys.html#sys.stdout">more interesting</a>:</p>
+<blockquote>
+<p>The character encoding is platform-dependent. Under Windows, if the stream is interactive (that is, if its isatty() method returns True), the console codepage is used, otherwise the ANSI code page. Under other platforms, the locale encoding is used (see locale.getpreferredencoding()).</p>
+</blockquote>
+<p>This means that <code>sys.stdout.write</code> will re-encode whatever you give it to suit the context.
+As a result we are required to give it text that is suitable for re-encoding; if we don't we get the encoding error that inspired this article.</p>
+<p>Since the documentation is horrifyingly difficult to traverse we can investigate a bit using python itself:</p>
+<pre><code class="language-python">&gt;&gt;&gt; import sys
+&gt;&gt;&gt; type(sys.stdout)
+&lt;class '_io.TextIOWrapper'&gt;
+</code></pre>
+<p>As you can see, <code>sys.stdout</code> is actually a <a href="https://docs.python.org/2/library/io.html#io.TextIOWrapper">TextIOWrapper</a>, which has some further relevant documentation.</p>
+<pre><code class="language-python"><span class="hljs-meta">&gt;&gt;&gt; </span>print(sys.stdout.errors)
+strict
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(sys.stdout.encoding)
+cp850
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(sys.stdout.line_buffering)
+<span class="hljs-keyword">True</span>
+</code></pre>
+<p>Now we can see that errors is set to strict, which is the cause of the encoding error, it has detected my console's encoding and it is using line-buffering, which means that the TextIOWrapper buffer is flushed on every newline character.</p>
+<p>However, if we put all those lines into a script and then redirect the output to a file the file contains:</p>
+<pre><code>&lt;class '_io.TextIOWrapper'&gt;
+cp1252
+strict
+False
+</code></pre>
+<p>The encoding has changed and line buffering has turned off.
+The same happens when the script output is piped to another program.
+So much for predictability.
+We must be wary.</p>
+<h3>Simple Error Example With <code>print</code></h3>
+<pre><code class="language-python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> sys
+<span class="hljs-meta">&gt;&gt;&gt; </span>sys.stdout.encoding
+<span class="hljs-string">'cp850'</span>
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(<span class="hljs-string">'hello'</span>)
+hello
+</code></pre>
+<p>In the above example <code>hello</code> is a utf-8 string, but the <code>hello</code> printed to the console has been re-encoded to <a href="https://en.wikipedia.org/wiki/Code_page_850">cp850</a>.
+This all works fine while the string only uses characters available in cp850.</p>
+<p>In the next example an attempt is made to print the mathematical delta increment sign, which does not exist in cp850 (the character appears as a triangle &quot;<code>∆</code>&quot; the escape in python is <code>\u2206</code>):</p>
+<pre><code class="language-python">&gt;&gt;&gt; print('\u2206')
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "c:\py34\python-3.4.2.amd64\lib\encodings\cp850.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_map)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2206' in position 0: character maps to &lt;undefined&gt;
+</code></pre>
+<h2>Changing the Console for the Text</h2>
+<p>The only practical way to reliably display utf-8 text in a console is to change the console to utf-8 mode.</p>
+<p>In the windows command prompt the console's code page can be changed to Unicode (cp65001) before starting Python using <code>chcp</code> (if using GitBash type <code>chcp.com</code> instead):</p>
+<pre><code>&gt;chcp 65001
+Active code page: 65001
+&gt;python
+Python 3.4.2 ...
+</code></pre>
+<p>After doing so you can work with Unicode to your heart's content:</p>
+<pre><code class="language-python"><span class="hljs-meta">&gt;&gt;&gt; </span><span class="hljs-keyword">import</span> sys
+<span class="hljs-meta">&gt;&gt;&gt; </span>sys.stdout.encoding
+<span class="hljs-string">'cp65001'</span>
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(<span class="hljs-string">'\u2206'</span>)
+∆
+</code></pre>
+<p>Doing same in Linux involves setting UTF-8 as part of your locale.
+This is still something I need to play with myself, so I can't provide more information.</p>
+<h2>Cleaning the Text for the Console</h2>
+<p>It is not always practical to change to console for the text.
+One may want to reliably print whatever the console is capable of printing in the situation.
+My solution is a very simple function that replaces characters not compatible with the current console.
+Text cleaned in this manner will print without error (but incompatible characters will be replaced with <code>?</code>).</p>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> sys
+
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">clean</span><span class="hljs-params">(text, mode=<span class="hljs-string">'replace'</span>)</span>:</span>
+    encoding = sys.stdout.encoding
+    <span class="hljs-keyword">if</span>(encoding <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-string">'utf-8'</span>):
+        text = text.encode(encoding, mode).decode(encoding)
+    <span class="hljs-keyword">return</span> text
+</code></pre>
+<p>This causes the original value of the replaced characters to be lost, so if you need to accurately pipe, redirect or view the incompatible utf-8 characters, this is no good.
+Also this is inefficient, since the text will be encoded again. You could simply skip the decode and pass the bytes to <code>sys.stdout.buffer.write</code> instead of using <code>print</code> (more on this later).</p>
+<h2>Let's Grok Encode Decode</h2>
+<p>This is a series of little code samples that should clear up any misconceptions you might have about what the encode and decode functions do.</p>
+<h3>string.encode()</h3>
+<p>The <code>string.encode('encoding')</code> function encodes the string into a <strong>bytes object</strong> with the specified encoding.
+Bytes are raw data, the bytes object does not have encoding, the data stored in the bytes represent text of an encoding.</p>
+<p>In Python 3 you encode from a <strong>utf-8-encoded-string</strong> to bytes and decode from bytes to a <strong>utf-8-encoded-string</strong> (I stress this point because seeing contradictory Python2 code can result in confusion).</p>
+<pre><code class="language-python">&gt;&gt;&gt; import sys
+&gt;&gt;&gt; sys.stdin.encoding
+'cp850'
+&gt;&gt;&gt; encoded = 'hello'.encode('cp850')
+&gt;&gt;&gt; print(encoded)
+b'hello'
+&gt;&gt;&gt; decoded = encoded.decode('cp850')
+&gt;&gt;&gt; print(decoded)
+hello
+&gt;&gt;&gt; type(encoded)
+&lt;class 'bytes'&gt;
+&gt;&gt;&gt; type(decoded)
+&lt;class 'str'&gt;
+</code></pre>
+<h3>string.decode()</h3>
+<p>The <code>bytes.decode('encoding')</code> function converts a bytes object representing text into an <strong>utf-8</strong> string.
+However the bytes data could be being used to represent any encoding (including utf-8) so that encoding must be specified.
+If you decode bytes representing utf-8 text, the data does not change, the underlying data is identical.</p>
+<p>The degrees symbol <code>º</code> exists in both Unicode and cp850 (everything should exist in Unicode).
+The next code example it working in each encoding and the failures that occur when it is decoded with the wrong encoding.
+You should be able to reproduce this example fine as long as your console is using one of these 2 encodings.</p>
+<blockquote>
+<p><strong>print(bytes)</strong></p>
+<p>When you ask Python to print a bytes object it will show the corresponding ASCII text to each byte if it is a printable character.
+If the corresponding ASCII is non-printable or the value is non-ASCII (above 127), it is shown as an escaped hex number, for example ASCII <code>0x01</code> (SOH) is escaped as<code>\x01</code>.
+Most encodings are compatible with the printable characters of ASCII so interpreting a byte as the ASCII is a good guess of what is meant by it (but by no means guaranteed).</p>
+</blockquote>
+<pre><code class="language-python">&gt;&gt;&gt; print('\u00ba')
+º
+&gt;&gt;&gt; degrees = '\u00ba'
+&gt;&gt;&gt; print(degrees)
+º
+&gt;&gt;&gt; degreesCp850 = degrees.encode('cp850')
+
+&gt;&gt;&gt; print(degreesCp850)
+b'\xa7'
+&gt;&gt;&gt; degreesUtf8 = degrees.encode('utf-8')
+&gt;&gt;&gt; print(degreesUtf8)
+b'\xc2\xba'
+&gt;&gt;&gt; print(degreesCp850.decode('cp850'))
+º
+&gt;&gt;&gt; print(degreesCp850.decode('utf-8'))
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xa7 in position 0: invalid start byte
+&gt;&gt;&gt; print(degreesUtf8.decode('utf-8'))
+º
+&gt;&gt;&gt; print(degreesUtf8.decode('cp850'))
+┬║
+</code></pre>
+<p>The next example uses a string containing only basic printable ASCII compatible characters.
+It demonstrates that using incorrect encoding may succeed when using only these basic characters.
+Most encodings are purposely designed to act like this, it creates a tolerance for bad encoding on simple text data.</p>
+<pre><code class="language-python"><span class="hljs-meta">&gt;&gt;&gt; </span>hello = <span class="hljs-string">'hello'</span>
+<span class="hljs-meta">&gt;&gt;&gt; </span>helloCp850 = hello.encode(<span class="hljs-string">'cp850'</span>)
+<span class="hljs-meta">&gt;&gt;&gt; </span>helloUtf8 = hello.encode(<span class="hljs-string">'utf-8'</span>)
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloCp850)
+<span class="hljs-string">b'hello'</span>
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloUtf8)
+<span class="hljs-string">b'hello'</span>
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(hellpCp850.decode(<span class="hljs-string">'cp-850'</span>)
+<span class="hljs-meta">... </span>)
+Traceback (most recent call last):
+  File <span class="hljs-string">"&lt;stdin&gt;"</span>, line <span class="hljs-number">1</span>, <span class="hljs-keyword">in</span> &lt;module&gt;
+NameError: name <span class="hljs-string">'hellpCp850'</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> defined
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloCp850.decode(<span class="hljs-string">'cp850'</span>))
+hello
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloUtf8.decode(<span class="hljs-string">'cp850'</span>))
+hello
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloUtf8.decode(<span class="hljs-string">'utf-8'</span>))
+hello
+<span class="hljs-meta">&gt;&gt;&gt; </span>print(helloCp850.decode(<span class="hljs-string">'utf-8'</span>))
+hello
+</code></pre>
+<h2>Direct Output To <code>stdout</code></h2>
+<p>The final method of working with utf-8 or any specified encoding is to send raw bytes directly to the <code>stdout</code> buffer, skipping the automatic encoding. This is the only way to guarantee that your encoding is kept intact, useful when the intent is to have utf-8 (or anything else) output piped or redirected to other places unmodified.</p>
+<p>As mentioned before <code>sys.stdout.write(string)</code> encodes by default, however using <code>sys.stdout.buffer.write(bytes)</code> delivers your bytes directly, unchanged.</p>
+<p>In theory <code>string.encode('utf-8)</code> doesn't actually do anything to the data itself, since string is is already utf-8, it just creates a bytes var to so that we can make direct use of the data. The is the equivalent of 'outputting the string directly'.</p>
+<p>The following simple Python script:</p>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> sys
+
+print(<span class="hljs-string">'1 sys.stdout.encoding: '</span> + sys.stdout.encoding)
+
+sys.stdout.buffer.write(<span class="hljs-string">'2 hello\n'</span>.encode())
+sys.stdout.buffer.write(<span class="hljs-string">'3 delta triangle: \u2206\n'</span>.encode())
+sys.stdout.buffer.write(<span class="hljs-string">'4 GPB currency symbol: £\n'</span>.encode())
+sys.stdout.buffer.write(<span class="hljs-string">'5 delta triangle: \u2206\n'</span>.encode(<span class="hljs-string">'cp850'</span>, <span class="hljs-string">'replace'</span>))
+sys.stdout.buffer.write(<span class="hljs-string">'6 GPB currency symbol: £\n'</span>.encode(<span class="hljs-string">'cp850'</span>))
+</code></pre>
+<p>Has the output:</p>
+<pre><code>1 sys.stdout.encoding: cp850
+2 hello
+3 delta triangle: Ôêå
+4 GPB currency symbol: ┬ú
+5 delta triangle: ?
+6 GPB currency symbol: £
+</code></pre>
+<p>In this example lines 2, 3 and 4 were econded to the default utf-8 before being output.
+This works fine for pure ASCII characters (<code>hello</code>) that are encoding-compatible with most code-pages but outputs garbage when it encounters anything beyond basic ASCII, as seen on output lines 3 and 4.</p>
+<p>The delta triangle character does not exist in cp850 so it is output as a <code>?</code> when encoded correctly.
+Note that the <code>'replace'</code> option was specified.
+The default <code>'strict'</code> mode would have broke the script with the error that inspired this article.</p>
+<p>Notably the British pound symbol <code>£</code> can be displayed in cp850 <code>print('£')</code>, however the encoding for this symbol is not the same as in utf-8 so it only appears when encoded correctly.</p>
+<h3>Pitfalls of Writing to <code>stdout.buffer</code></h3>
+<p>Now lets have a look at what happens when we redirect the output of the previous example to a text file (<code>example.py &gt; x.txt</code>):</p>
+<pre><code>2 hello
+3 delta triangle: âˆ†
+4 GPB currency symbol: Â£
+5 delta triangle: ?
+6 GPB currency symbol: œ
+1 sys.stdout.encoding: cp1252
+</code></pre>
+<p>The output is in the wrong order, the text output with <code>print</code> appears last.
+By default <code>stdout</code> is a <a href="https://docs.python.org/3/library/io.html#io.TextIOWrapper">TextIOWrapper</a> which inherits from <a href="https://docs.python.org/3/library/io.html#io.TextIOBase">TextIOBase</a>.
+It has its own text buffer separate to the underlying <a href="https://docs.python.org/3/library/io.html#io.BufferedWriter">BufferedWriter</a> (<code>sys.stdout.buffer</code>).
+This extra middle buffer must be flushed (<code>sys.stdout.flush()</code>) before writing directly to the underlying buffer.</p>
+<p>Since Python 3.3 <code>print</code> has a flush argument that will do the flush for you.</p>
+<p>I'm not sure if <code>sys.stdout.flush()</code> triggers <code>sys.stdout.buffer.flush()</code>, feel free to <a href="https://github.com/python/cpython/blob/1fe0fd9feb6a4472a9a1b186502eb9c0b2366326/Modules/_io/textio.c#L1244">investigate</a> <a href="https://github.com/python/cpython/blob/1fe0fd9feb6a4472a9a1b186502eb9c0b2366326/Modules/_io/textio.c#L2621">further</a>.</p>
+<p>The <a href="https://docs.python.org/3/library/sys.html#sys.stdout">Python documentation on this</a> mentions line-buffering:</p>
+<blockquote>
+<p>When interactive, standard streams are line-buffered. Otherwise, they are block-buffered like regular text files. You can override this value with the <code>-u</code> command-line option.</p>
+</blockquote>
+<p>However this seems to have nothing to do with this issue, the python interpreter and the console seems to always output immediately, regardless of the lack of line endings and files output out of order even with line endings.</p>
+<h4><code>_CHUNK_SIZE</code> hack</h4>
+<p>Yet another sneaky method is to set the <a href="https://github.com/python/cpython/blob/1fe0fd9feb6a4472a9a1b186502eb9c0b2366326/Modules/_io/textio.c#L1347">undocumented</a> chunk size to one:  <code>sys.stdout._CHUNK_SIZE = 1</code>.
+This is the variable in TextIOWrapper that controls the frequency of text buffer flushes.</p>
+<p><strong>However be careful, this requires at-least 2 characters to be sent at a time to guarantee a flush</strong>; <a href="https://github.com/python/cpython/blob/1fe0fd9feb6a4472a9a1b186502eb9c0b2366326/Modules/_io/textio.c#L1347">it only triggers a flush</a> when there are more than <code>chunk_size</code> characters pending to be written. The minimum allowed value of <code>chunk_size</code> is 1, which means the minimum pending characters must be 2 to flush. It handles the entire passed string at once, so strings that have a length of 2 or more will flush fully instantly.</p>
+<p>This is a handy hack if you have a lot of code lacking necessary flushes (and none of those string are smaller than 2 characters).</p>
+<p>I can't say I fully understand the code, so don't use this hack on any critical code.</p>
+<h2>Other Methods of Changing Output</h2>
+<p>As <a href="https://docs.python.org/3/library/sys.html#sys.stdout">mentioned in the documentation</a> the output encoding can be changed using the <code>PYTHONIOENCODING</code> environment variable.
+This approach is not recommended because it can have side effects, it may break other scripts.</p>
+<h3>Detach For Pure Binary</h3>
+<p>It is possible to <a href="https://docs.python.org/2/library/io.html#io.TextIOBase.detach">detach the TextIOWrapper</a> from stdout, however all this does is break <code>print</code> completely and change <code>sys.stdout.write()</code> so that it accepts bytes instead of string. This is only useful in porting awkward code from Python 2.</p>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> sys
+<span class="hljs-comment"># Detach returns the underlying stream, which is a _io.BufferedWriter</span>
+<span class="hljs-comment"># This is unlikely to be a good idea.</span>
+sys.stdout = sys.stdout.detach()
+</code></pre>
+<h3>Detach and Replace With Encoder</h3>
+<p>A more interesting idea than just detaching is to replace stdout with a utf-8 encoder:</p>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> codecs
+sys.stdout = codecs.getwriter(<span class="hljs-string">'utf-8'</span>)(sys.stdout.detach)
+</code></pre>
+<p>The <code>codecs.getwriter()</code> method returns a function for initialising a writer.
+The detached stream is passed as a parameter to create a writer that is then set as stdout.</p>
+<p>Now all <code>print</code> and <code>write</code> calls will be encoded as <code>utf-8</code> regardless of the context.
+This has the same output effect <code>sys.stdout.buffer.write(mystring.encode())</code>, non ASCII text becomes garbled in the console, but piped and redirected text is utf-8 so you can fully work in utf-8.
+Keep in mind that <code>stdout.buffer</code> does not exist anymore, since stdout is now a <code>encodings.utf_8.StreamWriter</code>.</p>
+<p>This is useful when you have a script with many print statements and you want to force utf-8 output for all of them.
+This is especially when the output will be redirected to file, and you want that file to be utf-8.</p>
+<h2>A Pitfall When Piping</h2>
+<p>Be wary, if you pipe utf-8 to another script or program without changing the console codepage to utf-8, the second script's stdin won't magically change to utf-8.
+If the second program is a python script it will detect the code-page from the console the same as always and the input will be decoded accordingly.
+You will have to force its stdin into utf-8 mode.</p>
+<h2>Last Words</h2>
+<p>It is annoying that everything doesn't work in unicode by default, but this is legacy.</p>
+<p>The 256 glyph VGA compatible text mode is still the universal fallback / startup mode for computers,
+meaning that the terminal will always need to be compatible with a basic old code page first.</p>
+<ul>
+<li>If you need Unicode you will have to specify it at both ends, in and out, or you risk failure.</li>
+<li>For visible console output, stick to ASCII.</li>
+</ul>
+<p>-t3hmun</p>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
