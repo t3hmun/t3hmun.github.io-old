@@ -18,24 +18,24 @@ It is possible to use fragments without it, but proper use of FragmentManager is
 The FragmentManager manages the life-cycle of the fragment in coordination with the activity lifecycle.
 It does some clever things for efficiency, but the machinations are somewhat perilous to the uninitiated.</p>
 <p>When a fragment is inserted directly into a xml layout the FragmentManager is automatically used in the background.
-FragmentPageAdapter also does all the essential FragmentManager work in its implementation.</p>
-<p>With a default ViewPager activity the FragmentManager is hidden away in the FragmentPageAdapter implementation,
+FragmentPagerAdapter also does all the essential FragmentManager work in its implementation.</p>
+<p>With a default ViewPager activity the FragmentManager is hidden away in the FragmentPagerAdapter implementation,
 but it is essential to know it is there managing the creation and destruction of Fragments.</p>
 <h2>ViewPager</h2>
 <p>The ViewPager manages the animation and page swiping interaction.</p>
 <p>It is rather un-interesting unless you want to do some custom animation,
 in which case go read about ViewPager.PageTransformer.</p>
 <h2>The Adapter and the Fragments</h2>
-<p>The PageAdapter has the task of supplying the ViewPager with the views to display in each page.
+<p>The PagerAdapter has the task of supplying the ViewPager with the views to display in each page.
 The ViewPager asks the adapter to create and destroy views as it needs them.</p>
-<p>The FragmentPageAdapter is an implementation of PageAdapter using Fragments for each page.
-Inside FragmentPageAdapter the FragmentManager is used to cache and manage the page Fragments efficiently.</p>
-<p>Have a quick read of the <a href="https://android.googlesource.com/platform/frameworks/support/+/nougat-release/v13/java/android/support/v13/app/FragmentPagerAdapter.java">FragmentPageAdapter source code</a>.
+<p>The FragmentPagerAdapter is an implementation of PagerAdapter using Fragments for each page.
+Inside FragmentPagerAdapter the FragmentManager is used to cache and manage the page Fragments efficiently.</p>
+<p>Have a quick read of the <a href="https://android.googlesource.com/platform/frameworks/support/+/nougat-release/v13/java/android/support/v13/app/FragmentPagerAdapter.java">FragmentPagerAdapter source code</a>.
 It is short and simple.</p>
 <h3>Fragment Creation</h3>
 <p>When the app starts the ViewPager will ask the adapter for up to three pages, the current next and previous pages.
 This is required so that the both views can be seen when swiping between 2 views.</p>
-<p>The first major source of confusion is the <code>FragmentPageAdapter.getItem()</code> method.</p>
+<p>The first major source of confusion is the <code>FragmentPagerAdapter.getItem()</code> method.</p>
 <ul>
 <li>Every time the ViewPager asks for a view the adapter first asks the FragmentManager.</li>
 <li>The FragmentAdapter only calls <code>getItem()</code> if the fragment is not found in the FragmentManager.</li>
@@ -44,7 +44,7 @@ This is required so that the both views can be seen when swiping between 2 views
 <p>So <code>getItem</code> is only used to initialise a fragment the first time that it is used.</p>
 <h3>Fragment Destruction (Partial)</h3>
 <p>When the page is no longer visible or adjacent to the visible page the ViewPager asks the adapter to destroy it.
-However the FragmentPageAdapter doesn't destroy the fragment entirely.
+However the FragmentPagerAdapter doesn't destroy the fragment entirely.
 It calls <code>FragmentTransaction.detach(fragment)</code>, which destroys the fragment's entire view hierarchy, but not the object.
 Next time the ViewPager wants that page the same fragment object can be retrieved and the view is rebuilt.
 In the process the <code>onCreateView()</code> is called again, this is where your logic to initialise the view belongs.</p>
