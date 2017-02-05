@@ -1,4 +1,7 @@
 {"description":"Clear up the confusing and troublesome nature of encoding and decoding in Python 3, especially when utf-8 and the console is involved."}
+
+> This article was imported from my old site.
+
 ## What
 
 This is an article for people wanting to understand the following error with Python 3:

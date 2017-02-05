@@ -1,3 +1,5 @@
+{"description":"I ran into some issues publishing Android Xamarin app with API25 and Java 8 with Proguard. These are the steps to get things working on a clean install."}
+
 ## What
 
 I'm probably going to wipe my computer when I upgrade some bits soon.

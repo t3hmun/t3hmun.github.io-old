@@ -1,3 +1,5 @@
+{"description":"Java has a significantly different concept of nested classes to C#. This article investigates the meaning of Nested Static and Anonymous classes in both Java and C#"}
+
 ## What what and what?
 
 Java has a significantly different concept of nested classes to C#.

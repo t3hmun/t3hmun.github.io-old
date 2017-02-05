@@ -1,3 +1,5 @@
+{"description":"A look into my preference to good UI design, placing things according to reach and visibility."}
+
 > This is a subject of interest because I'm currently writing an Android app for myself.
 
 ## Intro
