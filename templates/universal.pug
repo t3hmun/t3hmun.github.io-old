@@ -21,6 +21,7 @@ html(lang="en")
                     each val in site.nav
                         li
                             a(href=`${site.baseUrl}/${val.url}`)= val.text
+                        span |
                     li
                         a(id='theme-button', href='#')= `Switch theme`
         main
