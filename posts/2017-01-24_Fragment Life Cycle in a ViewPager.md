@@ -1,3 +1,5 @@
+{"description":"What happens to an instance of an Android Fragment, when does it happen and why?"}
+
 ## What
 
 What happens to an instance of an Android Fragment, when does it happen and why?
