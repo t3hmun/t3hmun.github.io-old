@@ -21,19 +21,24 @@
 // Special blocks of text such as lists need more space to be properly readable.
 @wide-text-width: @reading-width * 1.5;
 
+// So roughly 1.5 line spacing. Affects maximum header sizes via @header-line-height.
 @line-height: ceil(@base-size * 1.5);
 
-// Border size for headers.
-@header-border: ceil(@base-size / 25.0);
+// A border size that will almost certainly be 1px (unless base size is above 25).
+@basic-border: ceil(@base-size / 25.0);
 
-@h1-shadow: @header-border * 3;
+// These shadows are used to make the header levels more obvious.
+@h1-shadow: @basic-border * 3;
+@h2-shadow: @basic-border * 2;
+@h3-shadow: @basic-border * 1;
 
 @header-line-height: @line-height * 2;
 @masthead-line-height: @line-height * 3;
 
+// This is FONT size.
 // The masthead is not a header, its just a bit of text at the top of the page.
 @masthead-size: @base-size * 3;
-@h1-size: @base-size * 2.5;
+@h1-size: @base-size * 2.5; // Must be less than @header-line-height (@base-size*3 at time of writing).
 @h2-size: @base-size * 2.2;
 @h3-size: @base-size * 1.9;
 @h4-size: @base-size * 1.6;

@@ -126,23 +126,22 @@ h1 {
   font-size: @h1-size;
   font-weight: @h1-weight;
   color: @h1-colour;
-  border: @header-border @highlight-colour;
   margin-right: @h1-shadow;
+  // Box shadows don't affect box-model so the margin does not need to be recalculated.
   box-shadow: @h1-shadow @h1-shadow 0 @highlight-colour;
-  margin-bottom: @line-height - @h1-shadow;
 }
 
 h2 {
   font-size: @h2-size;
   color: @h2-colour;
-  margin-right: @h1-shadow;
-  box-shadow: @h1-shadow @h1-shadow 0 @subtle-back-colour;
-  margin-bottom: @line-height - @h1-shadow;
+  margin-right: @h2-shadow;
+  box-shadow: @h2-shadow @h2-shadow 0 @subtle-back-colour;
 }
 
 h3 {
   font-size: @h3-size;
   color: @h3-colour;
+  box-shadow: 0 @h3-shadow 0 @subtle-back-colour;
 }
 
 h4 {
@@ -218,12 +217,14 @@ h6 {
   line-height: @base-size;
   max-width: @content-width;
   margin: 0 @gutter;
+  color: @subtle-fore-colour;
 }
 
 .index-date-footer {
   line-height: @base-size;
   max-width: @content-width;
-  margin: 0 @gutter @line-height @gutter;
+  margin: 0 @gutter 0 @gutter;
+  color: @subtle-fore-colour;
 }
 
 .index-header {
