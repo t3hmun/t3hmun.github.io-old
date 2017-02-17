@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><title>Publishing an Android App from Android Studio</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="The details and reasons of how to properly prepare a Android App for release in Android Studio."><link id="main-css" rel="stylesheet" href="https://t3hmun.github.io/css/dark.css"><link rel="canonical" href="https://t3hmun.github.io/t3hmun.github.io\posts\2017-02-09_Publishing-an-Android-App-from-Android-Studio.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="https://t3hmun.github.io/feed.xml"><!-- A small non-essential for switching themes.--><script src="https://t3hmun.github.io/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="https://t3hmun.github.io/index.html">Home</a></li><span>|</span><li><a href="https://t3hmun.github.io/info.html">Info</a></li><span>|</span><li><a href="https://t3hmun.github.io/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Publishing an Android App from Android Studio</h1><div class="header-date-footer">Thu Feb 09 2017</div></header><h2>What</h2>
+<p>The documentation on how to publish an Android app to the Google Play store isn't particularly informative.</p>
+<p>This article explains all the tools and concepts involved and <strong>why</strong>.</p>
+<h2>Configuring your Application for Release</h2>
+<h3>Removing Log Calls</h3>
+<p>There are two big reasons that Google demands that Log calls are removed from the release version of an app.
+The first is security, it is very easy to leak sensitive data via log calls.
+The second reason is performance, the user has no use for these calls.</p>
+<p>Manually removing Log calls is silly and it is not how any good programmer operates.
+The default project configuration does not automatically remove Log calls but it can easily be done using Proguard.</p>
+<p>The Proguard tool is commonly used to shrink, optimise and obfuscate Android apps (and many other Java programs).
+By default the app <code>build.gradle</code> is set to use Proguard on release build with a config that turns optimisation off.
+Even with optimisation off Proguard requires plenty the contents of the config to avoid breaking the app during its shrink step.</p>
+<pre><code class="language-groovy">buildTypes {
+    release {
+        minifyEnabled <span class="hljs-literal">false</span>
+        proguardFiles getDefaultProguardFile(<span class="hljs-string">'proguard-android.txt'</span>), <span class="hljs-string">'proguard-rules.pro'</span>
+    }
+}
+</code></pre>
+<p>The default file can be found at <code>\android-sdk\tools\proguard\proguard-android.txt</code>.</p>
+<p>In order to use Proguard to remove Log calls optimize needs to be enabled,
+this is done by changing the default file to  <code>proguard-android-optimize.txt</code>.
+Again these default files are important because they have a lot of config that prevents Proguard from breaking the app.</p>
+<p>Next step is to open the <code>proguard-rules.pro</code> file in the app directory and add the rules to remove Log calls.
+The []Proguard manual](https://www.guardsquare.com/en/proguard/manual/examples#logging) has the rules needed to do this as an example with some useful explanation.</p>
+<pre><code>-assumenosideeffects class android.util.Log { 
+    public static boolean isLoggable(java.lang.String, int); 
+    public static int v(...); 
+    public static int i(...); 
+    public static int w(...); 
+    public static int d(...); 
+    public static int e(...); 
+} 
+</code></pre>
+<p>This rule tells Proguard that these methods don't have side effects.
+As a result Proguard will see this code as useless and remove it as part of optimisation.
+The only scenario that proguard would keep the Log call is if the return value is kept and used,
+however this should never by used.</p>
+<h3>debuggable versionName and versionCode</h3>
+<p>The documentation tells you to remove <code>android:debuggable</code> and set <code>andoid:versionName</code> and <code>android:versionCode</code> in the manifest.
+This is not helpful advice in modern Android apps.</p>
+<p>The <code>android:debuggable</code> attribute is no longer set manually, it is automatically added by Android Studio when debugging.
+This means that the attribute should never be manually set in your manifest.
+It may need to be removed manually if you are working with old code.</p>
+<p>The <code>android:debuggable</code> and set <code>andoid:versionName</code> attributes are now normally set in the <code>build.gradle</code>,
+which automatically sets it in the manifest, overwriting anything set there manually.
+So that too should not be manually set in the manifest because it will only lead to confusion.</p>
+<h2>Building and Signing a Release Version of your Application</h2>
+<p>Whenever an app is updated, the system will check to see if the app is signed by the same credentials.
+If the signatures don't match, the update will be refused.</p>
+<p>All builds that are run are signed, including debug builds.
+The debug builds use a default debug signature <code>~/.andoid/debug.keystore</code>, which cannot be used for release.</p>
+<p>Creating a signature, building and signing is done through a dialog,
+click on the <em>Build</em> menu in Android Studio and then click on <em>Generate Signed APK...</em>.
+The <a href="https://developer.android.com/studio/publish/app-signing.html#release-mode">documentation on how to make a keys</a> is not bad so read it for instructions on how to make a new key.</p>
+<p>Important points:</p>
+<ul>
+<li><strong>You must keep the keystore safe.</strong> If the keystore is lost the app cannot be updated. A new app would have to be made.</li>
+<li>The keystore can be kept in the project repository, but if it is public the password must be long, it is very vulnerable to brute force attacks.</li>
+<li>If the details are entered into the <em>Project Structure - Signing</em> dialog <strong>the password will appear in the build.gradle as plain text</strong>.
+This is a massive security problem if the app is open-source or the repositories are not secure. Best avoided.</li>
+<li>If the key expires, new versions of the app cannot be signed. The key expiry should be as long as the app might need updating.</li>
+</ul>
+<p>I personally recommend storing the keystore outside of the project repository (especially if you are planning to open source) but keeping it backed up externally.</p>
+<blockquote>
+<p>I imported a previously used keystore from Xamarin, the keystore password and the key password are the same.
+This is why Xamarin only asks for one password, but Android studio asks for 2.</p>
+</blockquote>
+<h2>Debugging The Release Build</h2>
+<p>The release build uses Proguard to shrink, optimise and obfuscate the code.
+Although unlikely to be an issue for small apps, this is a hazardous process and it may break the app.</p>
+<p>Editing the debug build to include Proguard is silly, it'll significantly slow down debug runs.
+Instead it makes sense to create a new build, specifically for debugging release builds:</p>
+<pre><code>        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug_release {
+            debuggable true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+</code></pre>
+<p>The default debug build isn't specified in the <em>build.gradle</em> but its main features are setting <em>debuggable true</em> and the dbug signing config.
+The debug signing config is also something that seems to be generated mysteriously automatically.</p>
+<blockquote>
+<p>I only use my debug_release build for verifying that I didn't do something catastrophically wrong.
+If you need to do some real debugging you may want to turn Proguard obfuscation off and fiddle with other features.</p>
+</blockquote>
+<h2>Whats Next</h2>
+<p>Next step requires a Google Developer account.
+Find the official documentation, follow the steps and upload the signed APK that was created.</p>
+<p>Most of the rest of the process is mostly boring.</p>
+<p>Tips:</p>
+<ul>
+<li>Start with a Alpha / Beta release to catch any issues before releasing to public.</li>
+<li>Don't bother with proper screenshots for the first upload, they'll probably change by the time the production release is ready.
+<ul>
+<li>Pressing ctrl+s in the Android emulator will take screenshots and save them to the desktop.</li>
+</ul>
+</li>
+</ul>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
