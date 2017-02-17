@@ -22,10 +22,10 @@
 @subtle-back-colour: mix(@highlight-colour, @background-colour, 10%);
 @subtle-fore-colour: mix(@highlight-colour, @text-colour, 50%);
 
-@h1-colour: @highlight-colour;
-@h2-colour: mix(@text-colour, @highlight-colour, 50%);
-@h3-colour: mix(@text-colour, @highlight-colour, 50%);
-@h4-colour: mix(@text-colour, @highlight-colour, 50%);
+@h1-colour: @highlight-colour; // will have big shadow
+@h2-colour: mix(@text-colour, @highlight-colour, 50%); // will have lighter shadow
+@h3-colour: mix(@text-colour, @highlight-colour, 50%); // will have subtle underline shadow
+@h4-colour: mix(@text-colour, @highlight-colour, 50%); // no underline
 @h5-colour: mix(@text-colour, @highlight-colour, 75%);
 @h6-colour: mix(@text-colour, @highlight-colour, 100%);
 
