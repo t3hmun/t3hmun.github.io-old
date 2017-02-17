@@ -42,7 +42,7 @@ function configure() {
         if (process.argv.find((e) => e == 'test')) {
             test = true;
             // Fully resolved path allows testing without server.
-            site.baseUrl = path.resolve('./test');
+            site.baseUrl = 'file:///' + path.resolve('./test');
             outputDir = path.resolve('./test');
             debug && console.log('test outputDir=' + outputDir);
             console.log(' Test mode activated.');
