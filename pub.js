@@ -322,6 +322,7 @@ function loadPosts(dir, outputDir, debug) {
 /**
  * Extracts title and date from filename, makes filename url friendly.
  * @param {{}} post - The post that will have properties added.
+ * @param {boolean} debug - Debug mode on, activates verbose output.
  * @returns {void}
  */
 function setPostDateTitleInfo(post, debug) {
