@@ -13,6 +13,7 @@
     "highlight.js": "^9.7.0",
     "less": "^2.7.1",
     "markdown-it": "^8.0.0",
-    "pug": "^2.0.0-beta6"
+    "pug": "^2.0.0-beta6",
+    "t3h-fs-helper": "^1.0.0"
   }
 }

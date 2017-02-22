@@ -4,7 +4,7 @@ const path = require('path');
 const md = require('./md');
 const pug = require('pug');
 const less = require('less');
-const effess = require('./effess');
+const effess = require('t3h-fs-helper');
 
 publish(...configure());
 
