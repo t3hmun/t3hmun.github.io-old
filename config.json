@@ -1,0 +1,43 @@
+{
+    "title": "t3hmun",
+    "description": "t3hmun's web-log",
+    "baseUrl": "https://t3hmun.github.io",
+    "nav": [
+        {
+            "url": "index.html",
+            "text": "Home"
+        },
+        {
+            "url": "info.html",
+            "text": "Info"
+        },
+        {
+            "url": "archive.html",
+            "text": "Archive"
+        }
+    ],
+    "testDir": "./preview",
+    "outputDir": {
+        "dir": "./pages",
+        "dirs": {
+            "content": "./",
+            "js": "js",
+            "css": "css",
+            "posts": "posts"
+        }
+    },
+    "inputDir": {
+        "dir": "./input/",
+        "dirs": {
+            "posts": "posts",
+            "templates": "templates",
+            "css": "css",
+            "js": "js",
+            "content": "content"
+        }
+    },
+    "lessFilesToOutput": [
+        ["light.less", "light.css"],
+        ["dark.less", "dark.css"]
+    ]
+}
