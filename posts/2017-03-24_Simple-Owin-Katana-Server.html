@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="en"><head><title>Simple Owin-Katana Server</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="It takes 2 minutes to write an OWIN/Katana we server starting from a default C# console app."><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/posts\2017-03-24_Simple-Owin-Katana-Server.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Simple Owin-Katana Server</h1><div class="header-date-footer">Fri Mar 24 2017</div></header><h2>What</h2>
+<p>A full explanation about how OWIN, Katana, WebApi and MVC5 work, starting from a standard console application.</p>
+<p>No magic allowed.</p>
+<p>I try and explain why parts are there and how they work.
+I want to minimise the potential for <a href="http://www.aft.org/ae/spring2016/sadler-and-sonnert">misconceptions</a>.</p>
+<h3>A side on Misconceptions</h3>
+<p>The levels of abstractions with web techs can be a bit bewildering as there is no logical path to understand it from your code alone.
+This applies double when dependency injection used, objects appear to materialise from nowhere.</p>
+<p>Our minds don't like being ignorant, so we tend sub-consciously to fill in gaps with guesses, which in time cement into fake truths; misconceptions.
+This is also part of what leads to cargo cult programming, repeating a set of magical actions that seem to create a desired result.</p>
+<p>These mis-truths leads to sloppy programming and bugs.
+It can also lead to an ever increasing sense of confusion that you eventually drown in. Not fun.</p>
+<p>The key to avoiding these problems is to fully break down and understand underlying concepts before moving onto bigger concepts.
+Sadly we don't really have time to do this for every framework and tech we use, but I see it as something worth striving for.
+Part of the problem is solved with good abstractions that don't require any underlying knowledge, but that isn't always possible.</p>
+<h2>A Basic OWIN / Katana Server with Middleware</h2>
+<p>To begin with lets write a tiny hello web server, it will be fully explained afterwards.
+This isn't the shortest way to write the hello world server, but it is more idiomatically correct.</p>
+<p>Start by creating an default C# console application in Visual Studio.</p>
+<p>Open the manage Nuget packages window (or use the PM console) and add:</p>
+<ul>
+<li><code>Microsoft.Owin.Hosting</code> (<code>Owin</code> and <code>Microsoft.Owin</code> should be automatically added aswell).</li>
+<li><code>Microsoft.Owin.Host.HttpListener</code></li>
+</ul>
+<p>This following listing is the full code for our first sample server.
+It adds 2 small classes and the code to launch the server in main.</p>
+<pre><code class="language-csharp"><span class="hljs-keyword">using</span> System;
+<span class="hljs-keyword">using</span> System.Collections.Generic;
+<span class="hljs-keyword">using</span> System.IO;
+<span class="hljs-keyword">using</span> System.Threading.Tasks;
+<span class="hljs-keyword">using</span> Microsoft.Owin.Hosting;
+<span class="hljs-keyword">using</span> Owin;
+
+<span class="hljs-keyword">namespace</span> <span class="hljs-title">SimpleOwinExample</span>
+{
+    <span class="hljs-keyword">using</span> AppFunc = Func&lt;IDictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt;, Task&gt;;
+
+    <span class="hljs-keyword">class</span> <span class="hljs-title">Program</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-keyword">string</span>[] args</span>)
+        </span>{
+            <span class="hljs-keyword">var</span> uri = <span class="hljs-string">"http://localhost:8910"</span>;
+
+            <span class="hljs-keyword">using</span> (WebApp.Start&lt;Startup&gt;(uri))
+            {
+                Console.WriteLine(<span class="hljs-string">$"### Server started at <span class="hljs-subst">{uri}</span>"</span>);
+                Console.WriteLine(<span class="hljs-string">"### Press anykey to shut down server."</span>);
+                Console.ReadKey();
+                Console.WriteLine(<span class="hljs-string">"### Server shutting down."</span>);
+            }
+        }
+    }
+
+    <span class="hljs-keyword">class</span> <span class="hljs-title">Startup</span>
+    {
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Configuration</span>(<span class="hljs-params">IAppBuilder app</span>)
+        </span>{
+            app.Use&lt;SampleMiddleWare&gt;();
+            app.Use((context, next) =&gt; context.Response.WriteAsync(<span class="hljs-string">"This is not hello."</span>));
+        }
+    }
+
+    <span class="hljs-keyword">class</span> <span class="hljs-title">SampleMiddleWare</span>
+    {
+        <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> AppFunc _next;
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SampleMiddleWare</span>(<span class="hljs-params">AppFunc next</span>)
+        </span>{
+            _next = next;
+        }
+
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">Invoke</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt; environment</span>)
+        </span>{
+            Console.WriteLine(<span class="hljs-string">"Start of SampleMiddleWare"</span>);
+            <span class="hljs-keyword">if</span> (environment[<span class="hljs-string">"owin.RequestPath"</span>].ToString().Contains(<span class="hljs-string">"hello"</span>))
+            {
+                <span class="hljs-keyword">using</span> (<span class="hljs-keyword">var</span> writer = <span class="hljs-keyword">new</span> StreamWriter((Stream) environment[<span class="hljs-string">"owin.ResponseBody"</span>]))
+                {
+                    <span class="hljs-keyword">await</span> writer.WriteAsync(<span class="hljs-string">"Salutations."</span>);
+                }
+            }
+            <span class="hljs-keyword">else</span>
+            {
+                <span class="hljs-keyword">await</span> _next.Invoke(environment);
+            }
+            Console.WriteLine(<span class="hljs-string">"End of SampleMiddleWare"</span>);
+        }
+    }
+}
+</code></pre>
+<p>Type that code into your <code>Program.cs</code> and then hit run.
+A console window should pop up with the server-started message.</p>
+<p>Now we can test the server by going to <code>http://localhost:8910/hello</code> in the browser.
+Without the hello you should get the default 404.</p>
+<p>If you have bash with <code>cURL</code> then you test it there:</p>
+<pre><code class="language-bash">$ curl localhost:8910
+This is not hello.
+$ curl localhost:8910/hello
+Salutations.
+</code></pre>
+<p>Or With Powershell:</p>
+<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910"</span>
+
+StatusCode        : <span class="hljs-number">200</span>
+StatusDescription : OK
+Content           : {<span class="hljs-number">84</span>, <span class="hljs-number">104</span>, <span class="hljs-number">105</span>, <span class="hljs-number">115</span>...}
+RawContent        : HTTP/<span class="hljs-number">1.1</span> <span class="hljs-number">200</span> OK
+                    Transfer-Encoding: chunked
+                    Date: Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> GMT
+                    Server: Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>
+
+                    This is not hello.
+Headers           : {[Transfer-Encoding, chunked], [Date, Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> GMT], [Server, Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>]}
+RawContentLength  : <span class="hljs-number">18</span>
+
+PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910/hello"</span>
+
+
+StatusCode        : <span class="hljs-number">200</span>
+StatusDescription : OK
+Content           : {<span class="hljs-number">83</span>, <span class="hljs-number">97</span>, <span class="hljs-number">108</span>, <span class="hljs-number">117</span>...}
+RawContent        : HTTP/<span class="hljs-number">1.1</span> <span class="hljs-number">200</span> OK
+                    Transfer-Encoding: chunked
+                    Date: Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">35</span> GMT
+                    Server: Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>
+
+                    Salutations.
+Headers           : {[Transfer-Encoding, chunked], [Date, Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">35</span> GMT], [Server, Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>]}
+RawContentLength  : <span class="hljs-number">12</span>
+</code></pre>
+<p>The browser would be the normal option for testing MVC apps.
+With WebAPI a program like Postman or Insomnia would make more sense.
+Using a command line tools is nice for something super simple such as this.</p>
+<h2>Explaining the Parts of the Basic Server</h2>
+<h3>What is OWIN / Katana</h3>
+<p>OWIN is a standard for creating web applications in a modular manner decoupled from the server and hosting.</p>
+<p>Some basic definitions from <a href="http://owin.org/html/spec/owin-1.0.html">the OWIN spec</a> (I've added examples in <em>(italics)</em>):</p>
+<blockquote>
+<p><strong>Server</strong> — The HTTP server that directly communicates with the client and then uses OWIN semantics to process requests. Servers may require an adapter layer that converts to OWIN semantics <em>(HTTPListener, IIS, test or mock server)</em>.</p>
+</blockquote>
+<blockquote>
+<p><strong>Web Framework</strong> — A self-contained component on top of OWIN exposing its own object model or API that applications may use to facilitate request processing. Web Frameworks may require an adapter layer that converts from OWIN semantics <em>(MVC5, Nancy, WebApi etc.)</em>.</p>
+</blockquote>
+<blockquote>
+<p><strong>Web Application</strong> — A specific application, possibly built on top of a Web Framework, which is run using OWIN compatible Servers <em>(your code)</em>.</p>
+</blockquote>
+<blockquote>
+<p><strong>Middleware</strong> — Pass through components that form a pipeline between a server and application to inspect, route, or modify request and response messages for a specific purpose. <em>(We will learn about this)</em></p>
+</blockquote>
+<blockquote>
+<p><strong>Host</strong> — The process an application and server execute inside of, primarily responsible for application startup. Some Servers are also Hosts <em>(Command Line App, IIS, Test Runner)</em>.</p>
+</blockquote>
+<p>OWIN is a the specification for a interface between the server and the web-application designed to decouple the two.
+This means that a OWIN based application should be trivial to move between servers, which is extremely useful during development.
+This should make the application run predictably when shifting from a local test host to any kind of cloud or production server.</p>
+<p>Katana is the name for Microsoft's implementation of OWIN, though all the packages are called <code>Owin.</code> and <code>Microsoft.Owin.</code>.
+The Katana name isn't actually used in the namespaces.</p>
+<h3>OWIN in a bit of detail</h3>
+<p><a href="http://owin.org/html/spec/owin-1.0.html">The OWIN spec</a> isn't particularly long and is worth a scan.</p>
+<p>There are 2 core concepts:</p>
+<ul>
+<li>Each request received by the server is encapsulated in a single dictionary (<code>IDictionary&lt;string, object&gt; environment</code>).</li>
+<li>The concept of middleware, a series of methods that run in a chain that try and deal with the request.</li>
+</ul>
+<p>The dictionary makes the task of adapting an existing server to the OWIN interface rather simple.
+Package all the request information into the dictionary and then forward to the OWIN interface.</p>
+<p>The OWIN spec has a <a href="http://owin.org/html/spec/owin-1.0.html#3-2-1-request-data">neat table</a> of a few standard items that must be included in the dictionary.
+Middleware can add extra items to the dictionary as a way of passing data to each other.</p>
+<p>TODO: Middleware diagram
+TODO: Middleware stack diagram</p>
+<h3>The Code Line by Line</h3>
+<h4>WebApp</h4>
+<p>The main starts the web-server with:</p>
+<p><code>using (WebApp.Start&lt;Startup&gt;(uri))</code></p>
+<p><code>WebApp</code> is a part of <code>Microsoft.Owin.Hosting</code> a handy library for starting a server.</p>
+<p>The library itself does some naughty hidden things; in <a href="https://github.com/aspnet/AspNetKatana/blob/9f6e09af6bf203744feb5347121fe25f6eec06d8/src/Microsoft.Owin.Hosting/Constants.cs"><code>Microsoft.Owin.Hosting/Constants.cs</code></a>
+<code>DefaultServer = &quot;Microsoft.Owin.Host.HttpListener&quot;</code> is defined.
+This means by default <code>WebApp.Start</code> tries to use <code>Microsoft.Owin.Host.HttpListener</code> as the server implementation.
+It is not an dependency of <code>Microsoft.Owin.Hosting</code> so we had to manually add the reference via Nuget otherwise the code would have crashed on when run.</p>
+<p>It is written like this because <code>WebApp.Start()</code> allows you to pass other implementations as an option so it doesn't always depend on <code>Microsoft.Owin.Host.HttpListener</code>.
+Without reading the code this looks a lot like magic.</p>
+<p>Like any other command line application the program ends when the <code>Main()</code> completes so we use a <code>Console.ReadKey()</code> to keep the server running.</p>
+<h4>Startup</h4>
+<p>The <code>Startup</code> class is what we use to configure the server, supplied to <code>Webapp.Start()</code> via the generic type parameter.</p>
+<p>The <code>IAppBuilder</code> is used to build the middleware pipeline.
+Middleware are added using passing a function into <code>.Use()</code> method (also <code>.Run()</code> and <code>.Map()</code> with different features).</p>
+<p>When a request is received the first middleware added is launched.
+The middleware is given 2 parameters:</p>
+<ul>
+<li>The OWIN dictionary containing all of the request and response information (<code>environment</code>).</li>
+<li>A function that calls the next middleware in the pipeline in a similar manner(<code>next</code>).</li>
+</ul>
+<p>The normal convention with middleware is that it should not call the next middleware if it writes the response.
+That way the middleware keep calling the next one until one decides to write the response.</p>
+<p>With the example application you will see the messages in the console showing the flow through the middleware code.</p>
+<p>The second <code>Use()</code> call uses a few features of Katana that make it easy to quickly write small middlewares.
+The <code>context</code> object has some helper methods such as <code>Response.WriteAsync()</code>,
+which is a shortcut for writing to the <code>environment[&quot;owin.ResponseBody&quot;]</code> stream.
+The <code>next</code> parameter in the lambda is the same as the <code>_next</code> in the <code>SampleMiddleWare</code>.</p>
+<p>Normally if you want to write a quick middleware that does not call <code>next()</code> you'd use <code>app.Run()</code> instead, which simply skips the next parameter.</p>
+<p>Finally <code>app.Map()</code> lets you add some more middleware that only execute if a specified path is matched.
+The following is the equivalent of the <code>SampleMiddleWare</code>:</p>
+<pre><code class="language-csharp">app.Map(<span class="hljs-string">"/bye"</span>, builder =&gt; builder.Run(context =&gt; context.Response.WriteAsync(<span class="hljs-string">"bye"</span>)));
+</code></pre>
+<h2>How Does WebAPI and MVC5 fit in?</h2>
+<p>TODO:</p>
+</article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
