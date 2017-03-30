@@ -1,29 +1,30 @@
-<!DOCTYPE html><html lang="en"><head><title>Simple Owin-Katana Server</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="It takes 2 minutes to write an OWIN/Katana we server starting from a default C# console app."><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/posts\2017-03-24_Simple-Owin-Katana-Server.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Simple Owin-Katana Server</h1><div class="header-date-footer">Fri Mar 24 2017</div></header><h2>What</h2>
-<p>A full explanation about how OWIN, Katana, WebApi and MVC5 work, starting from a standard console application.</p>
-<p>No magic allowed.</p>
-<p>I try and explain why parts are there and how they work.
-I want to minimise the potential for <a href="http://www.aft.org/ae/spring2016/sadler-and-sonnert">misconceptions</a>.</p>
-<h3>A side on Misconceptions</h3>
-<p>The levels of abstractions with web techs can be a bit bewildering as there is no logical path to understand it from your code alone.
-This applies double when dependency injection used, objects appear to materialise from nowhere.</p>
-<p>Our minds don't like being ignorant, so we tend sub-consciously to fill in gaps with guesses, which in time cement into fake truths; misconceptions.
-This is also part of what leads to cargo cult programming, repeating a set of magical actions that seem to create a desired result.</p>
-<p>These mis-truths leads to sloppy programming and bugs.
-It can also lead to an ever increasing sense of confusion that you eventually drown in. Not fun.</p>
-<p>The key to avoiding these problems is to fully break down and understand underlying concepts before moving onto bigger concepts.
-Sadly we don't really have time to do this for every framework and tech we use, but I see it as something worth striving for.
-Part of the problem is solved with good abstractions that don't require any underlying knowledge, but that isn't always possible.</p>
+<!DOCTYPE html><html lang="en"><head><title>Simple Owin-Katana Server</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Some of the undelying structure of ASP.Net 4 with OWIN."><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/posts\2017-03-24_Simple-Owin-Katana-Server.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Simple Owin-Katana Server</h1><div class="header-date-footer">Fri Mar 24 2017</div></header><h2>What</h2>
+<p>I decided I wanted to learn how ASP .Net 4* actually works.
+The are many working layers in a ASP application and it is not obvious where everything comes from.
+This article details my understanding and tries to teach it.</p>
+<p>We will build simple servers and applications from scratch avoiding the default templates.</p>
+<p>I start by having a look at OWIN / Katana and WebAPI.
+These three are not really a part of ASP .Net proper, they are something that bolts on top.</p>
+<p>Afterwards we move on to MVC5 and ASP .Net proper, looking at how it actually works for most web-applications.</p>
 <h2>A Basic OWIN / Katana Server with Middleware</h2>
-<p>To begin with lets write a tiny hello web server, it will be fully explained afterwards.
-This isn't the shortest way to write the hello world server, but it is more idiomatically correct.</p>
+<p>To begin with lets write a tiny hello web server, a full explanation of OWIN / Katana will follow.
+This is not the shortest way to write the hello world server, but it is far more useful for understanding.</p>
+<blockquote>
+<p>You can look at the <a href="https://github.com/t3hmun/asp-owin-examples/tree/SimpleHelloApplication">complete sample hello world example at GH</a>.</p>
+</blockquote>
 <p>Start by creating an default C# console application in Visual Studio.</p>
-<p>Open the manage Nuget packages window (or use the PM console) and add:</p>
+<p>Open the manage NuGet packages window or use the PM console and add:</p>
 <ul>
-<li><code>Microsoft.Owin.Hosting</code> (<code>Owin</code> and <code>Microsoft.Owin</code> should be automatically added aswell).</li>
+<li><code>Microsoft.Owin.Hosting</code> (<code>Owin</code> and <code>Microsoft.Owin</code> dependencies come with it).</li>
 <li><code>Microsoft.Owin.Host.HttpListener</code></li>
 </ul>
-<p>This following listing is the full code for our first sample server.
-It adds 2 small classes and the code to launch the server in main.</p>
+<p>This following listing is the full code for our first sample server.</p>
+<p>This code adds:</p>
+<ul>
+<li>A <code>Startup</code> class to configure the server.</li>
+<li>A middleware class that conditionally sends a response to the client.</li>
+<li>Some code in <code>Main</code> to host and start the server.</li>
+</ul>
 <pre><code class="language-csharp"><span class="hljs-keyword">using</span> System;
 <span class="hljs-keyword">using</span> System.Collections.Generic;
 <span class="hljs-keyword">using</span> System.IO;
@@ -112,8 +113,8 @@ RawContent        : HTTP/<span class="hljs-number">1.1</span> <span class="hljs-
                     This is not hello.
 Headers           : {[Transfer-Encoding, chunked], [Date, Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> GMT], [Server, Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>]}
 RawContentLength  : <span class="hljs-number">18</span>
-
-PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910/hello"</span>
+</code></pre>
+<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910/hello"</span>
 
 
 StatusCode        : <span class="hljs-number">200</span>
@@ -197,11 +198,50 @@ That way the middleware keep calling the next one until one decides to write the
 The <code>context</code> object has some helper methods such as <code>Response.WriteAsync()</code>,
 which is a shortcut for writing to the <code>environment[&quot;owin.ResponseBody&quot;]</code> stream.
 The <code>next</code> parameter in the lambda is the same as the <code>_next</code> in the <code>SampleMiddleWare</code>.</p>
-<p>Normally if you want to write a quick middleware that does not call <code>next()</code> you'd use <code>app.Run()</code> instead, which simply skips the next parameter.</p>
+<p>Normally if you want to write a quick middleware that does not call <code>next()</code> you'd use <code>app.Run()</code> instead,
+which simply skips the next parameter.</p>
 <p>Finally <code>app.Map()</code> lets you add some more middleware that only execute if a specified path is matched.
 The following is the equivalent of the <code>SampleMiddleWare</code>:</p>
 <pre><code class="language-csharp">app.Map(<span class="hljs-string">"/bye"</span>, builder =&gt; builder.Run(context =&gt; context.Response.WriteAsync(<span class="hljs-string">"bye"</span>)));
 </code></pre>
-<h2>How Does WebAPI and MVC5 fit in?</h2>
-<p>TODO:</p>
+<h2>Adding WebAPI into the Mix</h2>
+<p>WebAPI2 is a relatively simple framework for writing web APIs.
+It simplifies defining actions for GET PUT and other HTTP verbs and handles most serialisation automatically.</p>
+<p>Add the <code>Microsoft.AspNet.WebApi.Owin</code> NugGet package to our project.
+This will also add the <code>Microsoft.AspNet.WebApi.Core</code> dependency.</p>
+<p>Next we need to add a bit of code to configure the WebApi framework.
+Insert this at the beginning of the <code>Startup.Configuration()</code> method:</p>
+<pre><code class="language-csharp"><span class="hljs-keyword">var</span> webApiConfig = <span class="hljs-keyword">new</span> HttpConfiguration();
+webApiConfig.Routes.MapHttpRoute(
+    <span class="hljs-string">"apiRoute"</span>,
+    <span class="hljs-string">"api/{controller}/{id}"</span>,
+    <span class="hljs-keyword">new</span> {id = RouteParameter.Optional});
+app.UseWebApi(webApiConfig);
+</code></pre>
+<p><code>UseWebApi</code> is a extension method that calls <code>Use</code> to add WebAPI as another normal middleware.</p>
+<p>You should read the <a href="https://docs.microsoft.com/en-us/aspnet/web-api/overview/web-api-routing-and-actions/routing-and-action-selection">Microsoft documentation</a> to get a good understanding of how the routes work.</p>
+<p>Next we add a new class a controller that does the task of the route.</p>
+<pre><code class="language-csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> : <span class="hljs-title">ApiController</span>
+{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> <span class="hljs-title">Get</span>(<span class="hljs-params"><span class="hljs-keyword">int</span> id = <span class="hljs-number">-1</span></span>)
+    </span>{
+        <span class="hljs-keyword">return</span> <span class="hljs-string">$"Hi <span class="hljs-subst">{id}</span>"</span>;
+    }
+}
+</code></pre>
+<p>And we're done, webapi works.</p>
+<pre><code class="language-bash">$ curl localhost:8910/api/hello
+<span class="hljs-string">"Hi -1"</span>
+
+$ curl localhost:8910/api/hello/1234
+<span class="hljs-string">"Hi 1234"</span>
+</code></pre>
+<p>The old other middleware we set up still work the same too.</p>
+<h2>So What about MVC5</h2>
+<p>MVC5 does not exist as a middleware.
+It can not be used on top of OWIN.
+MVC5 uses the IIS integrated pipeline.</p>
+<p>When using OWIN with MVC5, the OWIN pipline gets hacked into the IIS pipline.
+You should read <a href="https://docs.microsoft.com/en-us/aspnet/aspnet/overview/owin-and-katana/owin-middleware-in-the-iis-integrated-pipeline">Microsoft's documentation on this</a> too.</p>
+<p>With ASP .Net Core MVC has been fully decoupled from IIS.</p>
 </article></main><footer class="footer"><div class="hatch-box"><a href="#">Top</a></div><p>CC-BY-SA-4.0</p></footer></body></html>
