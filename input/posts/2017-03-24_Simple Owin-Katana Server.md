@@ -1,44 +1,42 @@
-{"description":"It takes 2 minutes to write an OWIN/Katana we server starting from a default C# console app."}
+{"description":"Some of the undelying structure of ASP.Net 4 with OWIN."}
 
 ## What
 
-A full explanation about how OWIN, Katana, WebApi and MVC5 work, starting from a standard console application.
+I decided I wanted to learn how ASP .Net 4* actually works.
+The are many working layers in a ASP application and it is not obvious where everything comes from.
+This article details my understanding and tries to teach it.
 
-No magic allowed.
 
-I try and explain why parts are there and how they work.
-I want to minimise the potential for [misconceptions](http://www.aft.org/ae/spring2016/sadler-and-sonnert).
+We will build simple servers and applications from scratch avoiding the default templates.
 
-### A side on Misconceptions 
+I start by having a look at OWIN / Katana and WebAPI.
+These three are not really a part of ASP .Net proper, they are something that bolts on top.
 
-The levels of abstractions with web techs can be a bit bewildering as there is no logical path to understand it from your code alone.
-This applies double when dependency injection used, objects appear to materialise from nowhere.
-
-Our minds don't like being ignorant, so we tend sub-consciously to fill in gaps with guesses, which in time cement into fake truths; misconceptions.
-This is also part of what leads to cargo cult programming, repeating a set of magical actions that seem to create a desired result.
-
-These mis-truths leads to sloppy programming and bugs.
-It can also lead to an ever increasing sense of confusion that you eventually drown in. Not fun.
-
-The key to avoiding these problems is to fully break down and understand underlying concepts before moving onto bigger concepts.
-Sadly we don't really have time to do this for every framework and tech we use, but I see it as something worth striving for.
-Part of the problem is solved with good abstractions that don't require any underlying knowledge, but that isn't always possible.
+Afterwards we move on to MVC5 and ASP .Net proper, looking at how it actually works for most web-applications.
 
 
 ## A Basic OWIN / Katana Server with Middleware
 
-To begin with lets write a tiny hello web server, it will be fully explained afterwards.
-This isn't the shortest way to write the hello world server, but it is more idiomatically correct.
+To begin with lets write a tiny hello web server, a full explanation of OWIN / Katana will follow.
+This is not the shortest way to write the hello world server, but it is far more useful for understanding.
+
+> You can look at the [complete sample hello world example at GH](https://github.com/t3hmun/asp-owin-examples/tree/SimpleHelloApplication).
 
 Start by creating an default C# console application in Visual Studio.
 
-Open the manage Nuget packages window (or use the PM console) and add:
+Open the manage NuGet packages window or use the PM console and add:
 
-* `Microsoft.Owin.Hosting` (`Owin` and `Microsoft.Owin` should be automatically added aswell).
+* `Microsoft.Owin.Hosting` (`Owin` and `Microsoft.Owin` dependencies come with it).
 * `Microsoft.Owin.Host.HttpListener`
 
+
 This following listing is the full code for our first sample server.
-It adds 2 small classes and the code to launch the server in main.
+
+This code adds:
+
+* A `Startup` class to configure the server.
+* A middleware class that conditionally sends a response to the client.
+* Some code in `Main` to host and start the server.
 
 ```csharp
 using System;
@@ -112,8 +110,6 @@ A console window should pop up with the server-started message.
 Now we can test the server by going to `http://localhost:8910/hello` in the browser.
 Without the hello you should get the default 404.
 
-
-
 If you have bash with `cURL` then you test it there:
 
 ```bash
@@ -139,7 +135,9 @@ RawContent        : HTTP/1.1 200 OK
                     This is not hello.
 Headers           : {[Transfer-Encoding, chunked], [Date, Mon, 27 Mar 2017 17:01:31 GMT], [Server, Microsoft-HTTPAPI/2.0]}
 RawContentLength  : 18
+```
 
+```powershell
 PS C:\Users\t3hmu> Invoke-WebRequest -UseBasicParsing -URI "http://localhost:8910/hello"
 
 
@@ -159,8 +157,6 @@ RawContentLength  : 12
 The browser would be the normal option for testing MVC apps.
 With WebAPI a program like Postman or Insomnia would make more sense.
 Using a command line tools is nice for something super simple such as this.
-
-
 
 
 ## Explaining the Parts of the Basic Server
@@ -254,7 +250,8 @@ The `context` object has some helper methods such as `Response.WriteAsync()`,
 which is a shortcut for writing to the `environment["owin.ResponseBody"]` stream.
 The `next` parameter in the lambda is the same as the `_next` in the `SampleMiddleWare`.
 
-Normally if you want to write a quick middleware that does not call `next()` you'd use `app.Run()` instead, which simply skips the next parameter.
+Normally if you want to write a quick middleware that does not call `next()` you'd use `app.Run()` instead, 
+which simply skips the next parameter.
 
 Finally `app.Map()` lets you add some more middleware that only execute if a specified path is matched.
 The following is the equivalent of the `SampleMiddleWare`:
@@ -264,6 +261,61 @@ app.Map("/bye", builder => builder.Run(context => context.Response.WriteAsync("b
 ```
 
 
-## How Does WebAPI and MVC5 fit in?
+## Adding WebAPI into the Mix
 
-TODO:
+WebAPI2 is a relatively simple framework for writing web APIs.
+It simplifies defining actions for GET PUT and other HTTP verbs and handles most serialisation automatically.
+
+Add the `Microsoft.AspNet.WebApi.Owin` NugGet package to our project.
+This will also add the `Microsoft.AspNet.WebApi.Core` dependency.
+
+Next we need to add a bit of code to configure the WebApi framework. 
+Insert this at the beginning of the `Startup.Configuration()` method:
+
+```csharp
+var webApiConfig = new HttpConfiguration();
+webApiConfig.Routes.MapHttpRoute(
+    "apiRoute",
+    "api/{controller}/{id}",
+    new {id = RouteParameter.Optional});
+app.UseWebApi(webApiConfig);
+```
+
+`UseWebApi` is a extension method that calls `Use` to add WebAPI as another normal middleware.
+
+You should read the [Microsoft documentation](https://docs.microsoft.com/en-us/aspnet/web-api/overview/web-api-routing-and-actions/routing-and-action-selection) to get a good understanding of how the routes work.
+
+Next we add a new class a controller that does the task of the route.
+
+```csharp
+public class HelloController : ApiController
+{
+    public string Get(int id = -1)
+    {
+        return $"Hi {id}";
+    }
+}
+```
+
+And we're done, webapi works.
+
+```bash
+$ curl localhost:8910/api/hello
+"Hi -1"
+
+$ curl localhost:8910/api/hello/1234
+"Hi 1234"
+```
+
+The old other middleware we set up still work the same too.
+
+## So What about MVC5
+
+MVC5 does not exist as a middleware. 
+It can not be used on top of OWIN.
+MVC5 uses the IIS integrated pipeline.
+
+When using OWIN with MVC5, the OWIN pipline gets hacked into the IIS pipline.
+You should read [Microsoft's documentation on this](https://docs.microsoft.com/en-us/aspnet/aspnet/overview/owin-and-katana/owin-middleware-in-the-iis-integrated-pipeline) too.
+
+With ASP .Net Core MVC has been fully decoupled from IIS.
