@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><title>Simple Owin-Katana Server</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Some of the undelying structure of ASP.Net 4 with OWIN."><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/posts\2017-03-24_Simple-Owin-Katana-Server.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Simple Owin-Katana Server</h1><div class="header-date-footer">Fri Mar 24 2017</div></header><h2>What</h2>
+<!DOCTYPE html><html lang="en"><head><title>Simple Owin-Katana Server</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Some of the undelying structure of ASP.Net 4 with OWIN."><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/t3hmun.github.io-old/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/t3hmun.github.io-old/posts\2017-03-24_Simple-Owin-Katana-Server.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/t3hmun.github.io-old/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/t3hmun.github.io-old/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>Simple Owin-Katana Server</h1><div class="header-date-footer">Fri Mar 24 2017</div></header><h2>What</h2>
 <p>I decided I wanted to learn how ASP .Net 4* actually works.
 The are many working layers in a ASP application and it is not obvious where everything comes from.
 This article details my understanding and tries to teach it.</p>
@@ -38,8 +38,8 @@ This is not the shortest way to write the hello world server, but it is far more
 
     <span class="hljs-keyword">class</span> <span class="hljs-title">Program</span>
     {
-        <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-keyword">string</span>[] args</span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Main</span>(<span class="hljs-params"><span class="hljs-keyword">string</span>[] args</span>)</span>
+        {
             <span class="hljs-keyword">var</span> uri = <span class="hljs-string">"http://localhost:8910"</span>;
 
             <span class="hljs-keyword">using</span> (WebApp.Start&lt;Startup&gt;(uri))
@@ -54,8 +54,8 @@ This is not the shortest way to write the hello world server, but it is far more
 
     <span class="hljs-keyword">class</span> <span class="hljs-title">Startup</span>
     {
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Configuration</span>(<span class="hljs-params">IAppBuilder app</span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">Configuration</span>(<span class="hljs-params">IAppBuilder app</span>)</span>
+        {
             app.Use&lt;SampleMiddleWare&gt;();
             app.Use((context, next) =&gt; context.Response.WriteAsync(<span class="hljs-string">"This is not hello."</span>));
         }
@@ -65,13 +65,13 @@ This is not the shortest way to write the hello world server, but it is far more
     {
         <span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> AppFunc _next;
 
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SampleMiddleWare</span>(<span class="hljs-params">AppFunc next</span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">SampleMiddleWare</span>(<span class="hljs-params">AppFunc next</span>)</span>
+        {
             _next = next;
         }
 
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">Invoke</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt; environment</span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> Task <span class="hljs-title">Invoke</span>(<span class="hljs-params">IDictionary&lt;<span class="hljs-keyword">string</span>, <span class="hljs-keyword">object</span>&gt; environment</span>)</span>
+        {
             Console.WriteLine(<span class="hljs-string">"Start of SampleMiddleWare"</span>);
             <span class="hljs-keyword">if</span> (environment[<span class="hljs-string">"owin.RequestPath"</span>].ToString().Contains(<span class="hljs-string">"hello"</span>))
             {
@@ -100,33 +100,33 @@ $ curl localhost:8910/hello
 Salutations.
 </code></pre>
 <p>Or With Powershell:</p>
-<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910"</span>
+<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> <span class="hljs-literal">-UseBasicParsing</span> <span class="hljs-literal">-URI</span> <span class="hljs-string">"http://localhost:8910"</span>
 
 StatusCode        : <span class="hljs-number">200</span>
 StatusDescription : OK
 Content           : {<span class="hljs-number">84</span>, <span class="hljs-number">104</span>, <span class="hljs-number">105</span>, <span class="hljs-number">115</span>...}
 RawContent        : HTTP/<span class="hljs-number">1.1</span> <span class="hljs-number">200</span> OK
-                    Transfer-Encoding: chunked
+                    Transfer<span class="hljs-literal">-Encoding</span>: chunked
                     Date: Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> GMT
-                    Server: Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>
+                    Server: Microsoft<span class="hljs-literal">-HTTPAPI</span>/<span class="hljs-number">2.0</span>
 
                     This is not hello.
-Headers           : {[Transfer-Encoding, chunked], [Date, Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> GMT], [Server, Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>]}
+Headers           : {[<span class="hljs-type">Transfer</span>-<span class="hljs-type">Encoding</span>, <span class="hljs-type">chunked</span>], [<span class="hljs-type">Date</span>, <span class="hljs-type">Mon</span>, <span class="hljs-number">27</span> <span class="hljs-type">Mar</span> <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">31</span> <span class="hljs-type">GMT</span>], [<span class="hljs-type">Server</span>, <span class="hljs-type">Microsoft</span>-<span class="hljs-type">HTTPAPI</span>/<span class="hljs-number">2.0</span>]}
 RawContentLength  : <span class="hljs-number">18</span>
 </code></pre>
-<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> -UseBasicParsing -URI <span class="hljs-string">"http://localhost:8910/hello"</span>
+<pre><code class="language-powershell">PS C:\Users\t3hmu&gt; <span class="hljs-built_in">Invoke-WebRequest</span> <span class="hljs-literal">-UseBasicParsing</span> <span class="hljs-literal">-URI</span> <span class="hljs-string">"http://localhost:8910/hello"</span>
 
 
 StatusCode        : <span class="hljs-number">200</span>
 StatusDescription : OK
 Content           : {<span class="hljs-number">83</span>, <span class="hljs-number">97</span>, <span class="hljs-number">108</span>, <span class="hljs-number">117</span>...}
 RawContent        : HTTP/<span class="hljs-number">1.1</span> <span class="hljs-number">200</span> OK
-                    Transfer-Encoding: chunked
+                    Transfer<span class="hljs-literal">-Encoding</span>: chunked
                     Date: Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">35</span> GMT
-                    Server: Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>
+                    Server: Microsoft<span class="hljs-literal">-HTTPAPI</span>/<span class="hljs-number">2.0</span>
 
                     Salutations.
-Headers           : {[Transfer-Encoding, chunked], [Date, Mon, <span class="hljs-number">27</span> Mar <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">35</span> GMT], [Server, Microsoft-HTTPAPI/<span class="hljs-number">2.0</span>]}
+Headers           : {[<span class="hljs-type">Transfer</span>-<span class="hljs-type">Encoding</span>, <span class="hljs-type">chunked</span>], [<span class="hljs-type">Date</span>, <span class="hljs-type">Mon</span>, <span class="hljs-number">27</span> <span class="hljs-type">Mar</span> <span class="hljs-number">2017</span> <span class="hljs-number">17</span>:<span class="hljs-number">01</span>:<span class="hljs-number">35</span> <span class="hljs-type">GMT</span>], [<span class="hljs-type">Server</span>, <span class="hljs-type">Microsoft</span>-<span class="hljs-type">HTTPAPI</span>/<span class="hljs-number">2.0</span>]}
 RawContentLength  : <span class="hljs-number">12</span>
 </code></pre>
 <p>The browser would be the normal option for testing MVC apps.
@@ -223,8 +223,8 @@ app.UseWebApi(webApiConfig);
 <p>Next we add a new class a controller that does the task of the route.</p>
 <pre><code class="language-csharp"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">HelloController</span> : <span class="hljs-title">ApiController</span>
 {
-    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> <span class="hljs-title">Get</span>(<span class="hljs-params"><span class="hljs-keyword">int</span> id = <span class="hljs-number">-1</span></span>)
-    </span>{
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">string</span> <span class="hljs-title">Get</span>(<span class="hljs-params"><span class="hljs-keyword">int</span> id = <span class="hljs-number">-1</span></span>)</span>
+    {
         <span class="hljs-keyword">return</span> <span class="hljs-string">$"Hi <span class="hljs-subst">{id}</span>"</span>;
     }
 }

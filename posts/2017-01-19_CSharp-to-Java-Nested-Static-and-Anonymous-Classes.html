@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><title>C# to Java Nested, Static and Anonymous Classes</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Java has a significantly different concept of nested classes to C#. This article investigates the meaning of Nested Static and Anonymous classes in both Java and C#"><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/posts\2017-01-19_CSharp-to-Java-Nested-Static-and-Anonymous-Classes.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>C# to Java Nested, Static and Anonymous Classes</h1><div class="header-date-footer">Thu Jan 19 2017</div></header><h2>What what and what?</h2>
+<!DOCTYPE html><html lang="en"><head><title>C# to Java Nested, Static and Anonymous Classes</title><meta charset="utf-8"><!-- Informs smaller devices to wrap text inside the screen without scaling down the document.--><meta name="viewport" content="width=device-width, initial-scale=1"><!-- Info for robots who want to know about the page.--><meta name="description" content="Java has a significantly different concept of nested classes to C#. This article investigates the meaning of Nested Static and Anonymous classes in both Java and C#"><link id="main-css" rel="stylesheet" href="http://www.t3hmun.com/t3hmun.github.io-old/css/dark.css"><link rel="canonical" href="http://www.t3hmun.com/t3hmun.github.io-old/posts\2017-01-19_CSharp-to-Java-Nested-Static-and-Anonymous-Classes.html"><link rel="alternative" type="application/rss+xml" title="t3hmun" href="http://www.t3hmun.com/t3hmun.github.io-old/feed.xml"><!-- A small non-essential for switching themes.--><script src="http://www.t3hmun.com/t3hmun.github.io-old/js/theme.js"></script></head><body><header><div class="masthead">t3hmun</div><nav class="main-nav"><ul><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/index.html">Home</a></li><span>|</span><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/info.html">Info</a></li><span>|</span><li><a href="http://www.t3hmun.com/t3hmun.github.io-old/archive.html">Archive</a></li><span>|</span><li><a id="theme-button" href="#">Switch theme</a></li></ul></nav></header><main><article><header><h1>C# to Java Nested, Static and Anonymous Classes</h1><div class="header-date-footer">Thu Jan 19 2017</div></header><h2>What what and what?</h2>
 <p>Java has a significantly different concept of nested classes to C#.
 As a result static class and anonymous class have different meanings.
 All kinds of nested classes have different abilities.</p>
@@ -19,15 +19,15 @@ The difference is that it is accessed through the name of the containing class.<
 
     <span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title">Nested</span>
     {
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Nested</span>(<span class="hljs-params"></span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Nested</span>(<span class="hljs-params"></span>)</span>
+        {
             <span class="hljs-comment">// There is no such a thing as `Containing.this` in C#</span>
             <span class="hljs-comment">// Instead pass the `Containing` object in through the ctor (or a method, property etc..).</span>
             Console.WriteLine(<span class="hljs-string">"Nested ctor."</span>);
         }
 
-        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">FeelsLikeAnEcapsulationViolation</span>(<span class="hljs-params"></span>)
-        </span>{
+        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">FeelsLikeAnEcapsulationViolation</span>(<span class="hljs-params"></span>)</span>
+        {
             <span class="hljs-comment">// Nested class can access private vars from any instance of its Containing class.</span>
             <span class="hljs-keyword">var</span> instanceOfContaining = <span class="hljs-keyword">new</span> Containing();
             Console.WriteLine(instanceOfContaining.aPrivateVar);
@@ -53,7 +53,7 @@ They cannot be created without an instance of the containing class to link to.</
         <span class="hljs-comment">//Nested nestedInstance = new Nested();</span>
 
         Container containerInstance = <span class="hljs-keyword">new</span> Container();
-        Nested nestedInstance = containerInstance.new Nested(<span class="hljs-string">" Created externally."</span>);
+        Nested nestedInstance = containerInstance.<span class="hljs-keyword">new</span> Nested(<span class="hljs-string">" Created externally."</span>);
         nestedInstance.AccessPrivateVarFromContainer(); <span class="hljs-comment">// Prints `Hello. Created externally.`.</span>
         containerInstance.CreateNestedInstance(); <span class="hljs-comment">// Prints `Hello, Created internally.`.</span>
     }
