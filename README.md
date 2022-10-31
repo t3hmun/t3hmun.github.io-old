@@ -1,5 +1,34 @@
 # t3hmun's web-log
 
+## 2022-10-31 Updated publish instructions
+
+```bash
+git clone https://github.com/t3hmun/t3h-static-site-generator
+git clone https://github.com/t3hmun/t3hmun.github.io-old
+cd https://github.com/t3hmun/t3h-static-site-generator
+npm i
+cd ..
+cd https://github.com/t3hmun/t3hmun.github.io-old
+git co source
+code config.json
+```
+- Now update the url in config.json to get the appropriate URLs for the publishing
+  - When `t3hmun.github.io` is mapped to `www.t3hmun.com` then this site's URL becomes `http://www.t3hmun.com/t3hmun.github.io-old`
+- Return to the terminal in this project's folder
+
+```bash
+node ../t3h-static-site-generator/src/publish.js
+git co master
+mv -f ./pages ./
+```
+
+- Those commands were:
+  - Running publish populates the ignored  `pages/` folder
+  - Copying that pages output to the top of the master branch
+- Now just push and it is done.
+
+## Old Readme
+
 This is the source for my web-log.
 
 It is generated using my static site generator.
