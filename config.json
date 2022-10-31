@@ -1,7 +1,7 @@
 {
     "title": "t3hmun",
     "description": "t3hmun's web-log",
-    "baseUrl": "http://www.t3hmun.com",
+    "baseUrl": "http://t3hmun.github.io",
     "nav": [
         {
             "url": "index.html",
