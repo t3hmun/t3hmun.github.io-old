@@ -9,7 +9,7 @@ cd https://github.com/t3hmun/t3h-static-site-generator
 npm i
 cd ..
 cd https://github.com/t3hmun/t3hmun.github.io-old
-git co source
+git checkout source
 code config.json
 ```
 - Now update the url in config.json to get the appropriate URLs for the publishing
@@ -18,14 +18,11 @@ code config.json
 
 ```bash
 node ../t3h-static-site-generator/src/publish.js
-git co master
-mv -f ./pages ./
+git checkout master
 ```
 
-- Those commands were:
-  - Running publish populates the ignored  `pages/` folder
-  - Copying that pages output to the top of the master branch
-- Now just push and it is done.
+- Copy the contents of pages to top dir
+- Commit
 
 ## Old Readme
 
